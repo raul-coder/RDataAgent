@@ -127,22 +127,31 @@ def _reject_non_ascii_columns(tree: exp.Expression) -> None:
     sqlglot 会把它解析成一个 Column，最终打到数据库报
     UndefinedColumnError —— 用户看到的是一句看不懂的 PG 报错。
 
-    这里的判断刻意只看 exp.Column：
-      - 中文**别名**（`AS 产品线`）是 exp.Alias，合法，必须放行；
-      - 中文**字符串字面量**（`= '商业解决方案'`）是 exp.Literal，合法，必须放行。
-    只有「被当作列引用却又含中文」才是污染。
+    判据是「该列引用在本语句里有没有被定义过」：
+      - 中文**别名**（`AS 产品线`）自身是 exp.Alias，合法；
+      - ORDER BY / GROUP BY **引用中文别名**（`ORDER BY 高风险金额 DESC`）
+        是 PostgreSQL 的标准用法，也合法 —— 见下方 aliases 放行；
+      - 中文**字符串字面量**（`= '商业解决方案'`）是 exp.Literal，合法。
+    只有「被当作列引用、含中文、且语句里没有任何同名别名」才是污染。
 
     拦下来的收益不只是少一次报错：SQL_REJECTED 会带上原文，
     让自愈重试能拿到明确线索，而不是再错一次。
     """
+    # 本语句内定义的全部别名。ORDER BY / GROUP BY 可以直接引用输出列别名，
+    # 这是模型生成中文别名后最常见的写法，不能误杀。
+    aliases = {a.alias.lower() for a in tree.find_all(exp.Alias) if a.alias}
+
     for col in tree.find_all(exp.Column):
         name = col.name or ""
-        if name and _NON_ASCII.search(name):
-            raise SQLRejectedError(
-                f"SQL 含非法列名「{name}」：列名只能是英文字段，"
-                f"疑似模型把说明文字混进了 SQL",
-                detail={"column": name},
-            )
+        if not name or not _NON_ASCII.search(name):
+            continue
+        if name.lower() in aliases:
+            continue  # 引用的是自己定义的中文别名，合法
+        raise SQLRejectedError(
+            f"SQL 含非法列名「{name}」：列名只能是英文字段，"
+            f"疑似模型把说明文字混进了 SQL",
+            detail={"column": name},
+        )
 
 
 def _ensure_limit(

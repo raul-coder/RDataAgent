@@ -255,6 +255,12 @@ async def _replay_cached(
     await db.flush()
     await db.commit()
 
+    # 命中缓存跳过了 Agent，但会话上下文必须照常维护。
+    # 否则下一轮追问读到的 prev_slots 为空，会丢掉本轮的筛选条件——
+    # 例如 Q1「高风险项目有哪些」命中缓存后，Q2「按产品线分拆看看」
+    # 就丢失了 risk_level = '高'，变成统计全部项目。
+    await _sync_context_after_cache(session.id, question, hit, first)
+
     yield ev.meta_event(
         message_id=ai_msg.id, session_id=session.id, trace_id=trace_id, role="assistant"
     )
@@ -262,6 +268,56 @@ async def _replay_cached(
         tokens=hit.get("tokens") or {}, model=hit.get("model", ""),
         cost_ms=0, degraded=False, rows=len(first.get("rows") or []), cached=True,
     )
+
+
+async def _sync_context_after_cache(
+    session_id: int, question: str, hit: dict, first_table: dict
+) -> None:
+    """缓存命中的轮次也要更新会话上下文（槽位 + 结果集引用）。
+
+    只补两样东西，且都不需要 LLM：
+      - active_slots：由 extract_slots 纯规则抽取，供下一轮追问继承
+      - last_result_key / last_sql：供 result_ops（排序 / 换图 / 取前 N）复用
+
+    任何异常都只告警不抛出——上下文同步失败不该影响已经成功的问数。
+    """
+    try:
+        from ..agent import context as ctx_store
+        from ..agent.nodes.retrieve import retrieve_schema
+        from ..agent.nodes.rewrite import extract_slots
+        from ..agent.slots import merge
+
+        async with readonly_session() as ro:
+            schema = await retrieve_schema(ro)
+
+        ctx = ctx_store.load(session_id)
+        cur = extract_slots(question, schema, default_year=settings.DEFAULT_YEAR)
+        ctx.active_slots = merge(ctx.active_slots, cur)
+        ctx.last_sql = hit.get("sql", "")
+        if first_table:
+            ctx.last_result_key = ctx_store.cache_result(
+                session_id,
+                {
+                    "columns": first_table.get("columns") or [],
+                    "rows": first_table.get("rows") or [],
+                    "total": len(first_table.get("rows") or []),
+                    "truncated": bool(first_table.get("truncated")),
+                    "chart": (hit.get("charts") or [{}])[0],
+                    "question": question,
+                    "sql": hit.get("sql", ""),
+                },
+            )
+        ctx.turn_count += 1
+        ctx_store.save(ctx)
+
+        log_kv(
+            logger, logging.DEBUG, "缓存命中后同步会话上下文",
+            session_id=session_id, turn_count=ctx.turn_count,
+            active_slots=ctx.active_slots.to_dict(),
+            has_last_result=bool(ctx.last_result_key),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("缓存命中后同步会话上下文失败（不影响本次问数）：%s", exc)
 
 
 # ── 问数主流程 ──────────────────────────────────────────────────────

@@ -32,11 +32,32 @@ def test_reject_non_ascii_column(sql):
     "SELECT p.product_line FROM bi.fact_contract f"
     " LEFT JOIN bi.dim_product p ON p.product_code = f.product_code"
     " WHERE p.product_line = '商业解决方案'",
+    # ORDER BY 引用中文别名（PostgreSQL 标准用法，且是模型最常见的写法）
+    "SELECT p.product_line AS 产品线, COUNT(*) AS 高风险项目数"
+    " FROM bi.fact_contract f"
+    " LEFT JOIN bi.dim_product p ON p.product_code = f.product_code"
+    " WHERE f.risk_level = '高' GROUP BY p.product_line"
+    " ORDER BY 高风险项目数 DESC LIMIT 10",
 ])
 def test_allow_chinese_alias_and_literal(sql):
     """中文只允许出现在别名与字符串字面量，不能被误杀。"""
     out = validate(sql, ALLOWED)
     assert out  # 未抛异常即通过
+
+
+def test_reject_non_ascii_column_when_no_matching_alias():
+    """同样的中文，若语句中未定义同名别名，则仍判定为污染。
+
+    这条与上面「放行」的用例只差一个 AS 定义，用于钉死判据：
+    看的是「有没有定义过」，而不是「是不是中文」。
+    """
+    sql = (
+        "SELECT p.product_line AS 产品线 FROM bi.fact_contract f"
+        " LEFT JOIN bi.dim_product p ON p.product_code = f.product_code"
+        " ORDER BY 高风险项目数 DESC"          # 未定义该别名
+    )
+    with pytest.raises(SQLRejectedError):
+        validate(sql, ALLOWED)
 
 
 def test_simple_where():
