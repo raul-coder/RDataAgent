@@ -54,15 +54,63 @@ class TextFormatter(logging.Formatter):
 
 
 def setup_logging(level: str = "INFO", json_format: bool = False) -> None:
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(JsonFormatter() if json_format else TextFormatter())
+    # 延迟导入：config 模块本身不依赖 logging，但避免任何潜在的加载期循环
+    from .config import settings
+
+    formatter = JsonFormatter() if json_format else TextFormatter()
     root = logging.getLogger()
     root.handlers.clear()
-    root.addHandler(handler)
     root.setLevel(level)
-    # 压制第三方噪声
-    for name in ("uvicorn.access", "httpx", "httpcore", "websockets"):
+
+    console = logging.StreamHandler(sys.stdout)
+    console.setFormatter(formatter)
+    root.addHandler(console)
+
+    # 文件 handler：控制台输出会随终端关闭丢失，排查历史问题必须落盘。
+    # 格式与控制台保持一致（本地文本、生产 JSON），避免一套日志两种读法。
+    if settings.LOG_TO_FILE:
+        file_handler = _build_file_handler(settings, formatter, level)
+        if file_handler is not None:
+            root.addHandler(file_handler)
+            # 用 root logger：本模块是日志设施自身，没有自己的 logger 实例
+            logging.getLogger().info("日志文件：%s", settings.log_dir / "app.log")
+    # 压制第三方噪声。
+    # litellm 尤其吵：DEBUG 级别会输出「Filtered callbacks」「not mapped in model
+    # cost map」等与业务无关的内部细节，且每次 LLM 调用数十条，会把我们自己埋的
+    # 槽位 / SQL / 上下文日志彻底淹没（实测 767 条 DEBUG 里九成是它）。
+    # openai / sqlalchemy.engine 同理：前者与 litellm 重复，后者仅在需要排查
+    # 慢查询时才临时打开（settings.SQL_ECHO=True）。
+    for name in (
+        "uvicorn.access", "httpx", "httpcore", "websockets",
+        "litellm", "LiteLLM", "openai",
+    ):
         logging.getLogger(name).setLevel(logging.WARNING)
+
+
+def _build_file_handler(
+    settings: Any,
+    formatter: logging.Formatter,
+    level: str,
+) -> Optional[logging.Handler]:
+    """构建按大小轮转的文件 handler；失败时返回 None（绝不能因此起不来服务）。"""
+    from logging.handlers import RotatingFileHandler
+
+    try:
+        log_dir = settings.log_dir
+        log_dir.mkdir(parents=True, exist_ok=True)
+        handler = RotatingFileHandler(
+            log_dir / "app.log",
+            maxBytes=int(settings.LOG_MAX_BYTES),
+            backupCount=int(settings.LOG_BACKUP_COUNT),
+            encoding="utf-8",
+        )
+        handler.setLevel(level)
+        handler.setFormatter(formatter)
+        return handler
+    except Exception as exc:  # noqa: BLE001
+        # 目录不可写 / 磁盘满等情况只降级为纯控制台，不能让服务启动失败
+        print(f"警告：日志文件初始化失败，仅输出到控制台：{exc}", file=sys.stderr)
+        return None
 
 
 def new_trace_id() -> str:

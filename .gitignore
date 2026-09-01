@@ -17,6 +17,10 @@ npm-debug.log*
 # 造数产物（由 make seed 生成，不入库）
 server/data/generated/
 
+# 运行期日志（server/logs/app.log*，由 RotatingFileHandler 轮转）
+logs/
+*.log
+
 # 环境（含 API Key，切勿入库）
 .env
 .env.bak.*

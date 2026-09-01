@@ -3,9 +3,26 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# pydantic-settings 只把 .env 解析进 Settings 对象，**不会写入 os.environ**。
+# 而部分第三方库（典型如 LiteLLM，读 LITELLM_LOCAL_MODEL_COST_MAP）是直接从
+# os.environ 取配置的，光有 Settings 字段对它们无效。
+# 这里额外 load 一次，让 .env 对这些库同样生效。
+#
+# override=False：已存在的真实环境变量优先，.env 只作兜底（生产注入变量不被覆盖）。
+# 遍历顺序按优先级从高到低——先加载的会占位，与 Settings 的 env_file
+# 顺序（".env", "../.env"，后者优先）保持一致。
+for _env_path in (
+    Path(__file__).resolve().parents[3] / ".env",  # 项目根（对应 ../.env，优先）
+    Path(__file__).resolve().parents[2] / ".env",  # server/
+):
+    if _env_path.is_file():
+        load_dotenv(_env_path, override=False)
 
 
 class Settings(BaseSettings):
@@ -75,6 +92,14 @@ class Settings(BaseSettings):
     DATA_AS_OF: str = "2026-12-31"
     DEFAULT_YEAR: int = 2026
 
+    # ── 日志 ──────────────────────────────────────────────────────
+    # 相对路径按 server/ 解析（不随启动目录漂移），默认 server/logs/。
+    LOG_DIR: str = "logs"
+    LOG_TO_FILE: bool = True
+    # 单文件上限与保留份数：调试期默认 10MB × 5，约 50MB 封顶
+    LOG_MAX_BYTES: int = 10 * 1024 * 1024
+    LOG_BACKUP_COUNT: int = 5
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
@@ -87,6 +112,15 @@ class Settings(BaseSettings):
     def bi_readonly_dsn(self) -> str:
         """未单独配置只读连接时，回退到主连接（开发环境允许，生产必须区分）。"""
         return self.BI_READONLY_URL or self.DATABASE_URL
+
+    @property
+    def log_dir(self) -> Path:
+        """日志目录（绝对）。相对路径按 server/ 解析，避免 `cd` 不同目录时日志散落。"""
+        p = Path(self.LOG_DIR)
+        if not p.is_absolute():
+            # server/app/core/config.py → 上溯三级到 server/
+            p = Path(__file__).resolve().parents[2] / p
+        return p
 
 
 @lru_cache
