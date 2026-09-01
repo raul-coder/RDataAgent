@@ -139,8 +139,14 @@ INSERT INTO sem_rule (id, scene, title, content, priority, enabled) VALUES
      $txt$按数据截止日 2026-12-31 计：「本季度」= 2026-Q4，「上季度」= 2026-Q3，「去年同期」= 2025 年同季度。季度用 EXTRACT(QUARTER FROM f.land_date) 计算。$txt$, 90, TRUE),
 (4,  'time',    '近 N 个月',
      $txt$「近 N 个月」以 2026-12-31 为基准向前推算，用 f.land_date >= DATE '2026-12-31' - INTERVAL 'N months' 过滤。$txt$, 85, TRUE),
-(5,  'time',    '时间过滤字段',
-     $txt$年度过滤统一用 f.year = YYYY；月度问题用 EXTRACT(MONTH FROM f.land_date)；季度用 EXTRACT(QUARTER FROM f.land_date)。禁止用日期范围猜测年度。$txt$, 80, TRUE),
+(5,  'time',    '时间列按表区分',
+     $txt$时间列因表而异，写 SQL 前必须先确认 FROM 的是哪张表，禁止套用同一套写法：
+1) bi.fact_contract（别名 f）：日期列 f.land_date（date）、年度 f.year。月度用 EXTRACT(MONTH FROM f.land_date)，季度用 EXTRACT(QUARTER FROM f.land_date)。
+2) bi.fact_ppl（别名 ppl）：日期列 ppl.expect_land_date（date）、年度 ppl.year。
+3) bi.fact_goal（别名 g）：只有年度 g.year 与月份 g.month（integer，取值 0-12）。该表【没有任何日期列】，不存在 land_date、month_date、goal_date 之类字段——不要臆造。按月查目标直接用 g.month 分组，例如 GROUP BY g.month；不要写 EXTRACT(MONTH FROM g.月份)。
+⚠️ 关于 g.month = 0：它是【年度汇总行】（每个经营单元一行，其 biz_goal 等于该单元 1-12 月之和）。因此查「全年目标/总目标」用 WHERE g.month = 0；查「各月目标分布」用 WHERE g.month BETWEEN 1 AND 12。绝不可在不限定 g.month 的情况下 SUM(g.biz_goal)，否则汇总行与明细行相加，结果正好翻倍。
+4) 视图（v_overall_achieve / v_product_analysis / v_achieve_yoy / v_industry_achieve / v_solution_analysis / v_key_unit）：只有 year 列，没有日期列也没有月份列，无法按月或按季度拆分。若问题要求月度/季度粒度，必须回到 bi.fact_contract（用 f.land_date）或 bi.fact_goal（用 g.month）。
+年度过滤统一用「<别名>.year = YYYY」，禁止用日期范围猜测年度。$txt$, 80, TRUE),
 (6,  'caliber', '商业收入口径',
      $txt$商业收入 = 不含税签约额，单位万元，取 bi.fact_contract.year_income（等于该合同 12 个月收入之和）。$txt$, 100, TRUE),
 (7,  'caliber', '完成率口径',
