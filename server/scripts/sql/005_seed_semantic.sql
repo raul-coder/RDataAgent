@@ -159,7 +159,19 @@ INSERT INTO sem_rule (id, scene, title, content, priority, enabled) VALUES
 4) 视图（v_overall_achieve / v_product_analysis / v_achieve_yoy / v_industry_achieve / v_solution_analysis / v_key_unit）：只有 year 列，没有日期列也没有月份列，无法按月或按季度拆分。若问题要求月度/季度粒度，必须回到 bi.fact_contract（用 f.land_date）或 bi.fact_goal（用 g.month）。
 年度过滤统一用「<别名>.year = YYYY」，禁止用日期范围猜测年度。$txt$, 80, TRUE),
 (6,  'caliber', '商业收入口径',
-     $txt$商业收入 = 不含税签约额，单位万元，取 bi.fact_contract.year_income（等于该合同 12 个月收入之和）。$txt$, 100, TRUE),
+     $txt$商业收入 = 不含税签约额，单位万元，取 bi.fact_contract.year_income（等于该合同 12 个月收入之和）。
+
+【按月统计的口径（务必遵守）】
+「某月收入」按【落地月】统计：落在某月的合同，其 year_income 全额计入该月。
+  SELECT ... SUM(f.year_income) ... WHERE EXTRACT(MONTH FROM f.land_date) = N
+  （按 f.land_date 分组同理，注意它是把合同全年收入记在落地当月，属签约额口径）
+
+这与 bi.fact_contract 的 m1_income~m12_income / m1_payment~m12_payment 分摊列【不是同一个口径】：
+  · 落地月口径（本系统采用）：2026 年 1 月 = 5828.93
+  · 分摊列口径（收入按 12 个月摊分，各月实际确认额）：2026 年 1 月 = SUM(m1_income) = 2914.79
+两者相差约一倍。已验证 SUM(year_income) = SUM(m1..m12_income)（2026 年均为 122364.65），即分摊列之和等于合同全年收入，只是分布到各月的方式不同。
+
+默认一律使用落地月口径。仅当用户明确提出「按收入分摊」「按月确认收入」「分摊口径」等要求时，才改用 m1~m12_* 列，且应在回答中说明所用口径。$txt$, 100, TRUE),
 (7,  'caliber', '完成率口径',
      $txt$完成率 = 收入 / 目标 × 100，保留 2 位小数；除数为 0 时用 NULLIF 返回 NULL，不得报除零错误。
 ⚠️ 跨多个经营单元的「整体完成率」必须用 SUM(income) / SUM(biz_goal) × 100（以目标额为权重的加权口径）。
