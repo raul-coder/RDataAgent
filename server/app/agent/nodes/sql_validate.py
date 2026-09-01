@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import Optional, Sequence
 
 import sqlglot
@@ -94,6 +95,9 @@ def validate(
         if fname in DANGEROUS_FUNCS:
             raise SQLRejectedError(f"禁止使用函数：{fname}")
 
+    # 3.5) 非法标识符：拦截混入 SQL 的中文列名
+    _reject_non_ascii_columns(tree)
+
     # 4) LIMIT 注入
     _ensure_limit(tree, is_ranking=is_ranking, max_rows=max_rows)
     sql = tree.sql(dialect="postgres")
@@ -110,6 +114,35 @@ def validate(
 
     logger.info("SQL 校验通过：%s", sql[:160])
     return sql
+
+
+_NON_ASCII = re.compile(r"[^\x00-\x7F]")
+
+
+def _reject_non_ascii_columns(tree: exp.Expression) -> None:
+    """拦截含非 ASCII 字符的**列名**。
+
+    为什么需要这道闸：模型偶尔会把思考过程的中文文本泄漏进 SQL，
+    例如生成 `f.year = 我们发现2025`（本该是 `f.year = 2025`）。
+    sqlglot 会把它解析成一个 Column，最终打到数据库报
+    UndefinedColumnError —— 用户看到的是一句看不懂的 PG 报错。
+
+    这里的判断刻意只看 exp.Column：
+      - 中文**别名**（`AS 产品线`）是 exp.Alias，合法，必须放行；
+      - 中文**字符串字面量**（`= '商业解决方案'`）是 exp.Literal，合法，必须放行。
+    只有「被当作列引用却又含中文」才是污染。
+
+    拦下来的收益不只是少一次报错：SQL_REJECTED 会带上原文，
+    让自愈重试能拿到明确线索，而不是再错一次。
+    """
+    for col in tree.find_all(exp.Column):
+        name = col.name or ""
+        if name and _NON_ASCII.search(name):
+            raise SQLRejectedError(
+                f"SQL 含非法列名「{name}」：列名只能是英文字段，"
+                f"疑似模型把说明文字混进了 SQL",
+                detail={"column": name},
+            )
 
 
 def _ensure_limit(

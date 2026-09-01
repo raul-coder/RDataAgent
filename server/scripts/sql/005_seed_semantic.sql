@@ -129,7 +129,7 @@ ON CONFLICT (id) DO UPDATE SET
     source_id = EXCLUDED.source_id, dim_type = EXCLUDED.dim_type, value_map = EXCLUDED.value_map,
     enabled = EXCLUDED.enabled;
 
--- ── 口径规则（15 条）───────────────────────────────────────────────
+-- ── 口径规则（16 条）───────────────────────────────────────────────
 INSERT INTO sem_rule (id, scene, title, content, priority, enabled) VALUES
 (1,  'time',    '默认年份',
      $txt$用户未指定时间时，默认查询 2026 年。数据截止日期为 2026-12-31。$txt$, 100, TRUE),
@@ -160,7 +160,10 @@ INSERT INTO sem_rule (id, scene, title, content, priority, enabled) VALUES
 (14, 'chart',   '图表类型推荐',
      $txt$月度/季度趋势用折线图；占比用饼图或环形图；排名用横向条形图；目标与实际对比用分组柱状图并叠加完成率折线（双轴）。$txt$, 100, TRUE),
 (15, 'chart',   '单值不画图',
-     $txt$结果仅一行一列（单值）时用指标卡展示，不输出图表；结果为空时明确说明「该条件下无数据」并给出放宽建议。$txt$, 90, TRUE)
+     $txt$结果仅一行一列（单值）时用指标卡展示，不输出图表；结果为空时明确说明「该条件下无数据」并给出放宽建议。$txt$, 90, TRUE),
+(17, 'caliber', '同比口径',
+     $txt$同比（yoy）=（本期 − 同期）/ 同期 × 100，ROUND 保留 2 位小数；除数为 0 必须用 NULLIF(...,0) 返回 NULL，不得报除零错误。按年度同比时统一用 SUM(CASE WHEN f.year = 2026 THEN f.year_income ELSE 0 END) 作本期、SUM(CASE WHEN f.year = 2025 THEN f.year_income ELSE 0 END) 作同期。
+重要边界：bi.v_achieve_yoy（同比分析）视图【仅含经营单元维度】（year/unit_code/unit_name/region/income/prev_income/income_yoy），没有 product_line、industry_code、customer_code 列。若问题涉及产品线、行业、客户等其它维度的同比，必须基于 bi.fact_contract 用上面的 CASE WHEN 自行计算，不得假设任何视图存在 income_yoy 列——多数视图并没有该列。$txt$, 97, TRUE)
 ON CONFLICT (id) DO UPDATE SET
     scene = EXCLUDED.scene, title = EXCLUDED.title, content = EXCLUDED.content,
     priority = EXCLUDED.priority, enabled = EXCLUDED.enabled;

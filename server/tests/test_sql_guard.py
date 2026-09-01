@@ -4,10 +4,39 @@ from __future__ import annotations
 
 import pytest
 
+from app.agent.nodes.sql_validate import validate
 from app.core.exceptions import SQLRejectedError
 from app.security.sql_guard import apply_data_permission, assert_readonly
 
 UNITS = ["SH", "ZJ"]
+ALLOWED = ["bi.fact_contract", "bi.dim_product", "fact_contract", "dim_product"]
+
+
+# ── 非法标识符拦截（模型把说明文字泄漏进 SQL）──────────────────
+# 回归：曾生成 `f.year = 我们发现2025`，sqlglot 解析为 Column，
+# 打到数据库报 UndefinedColumnError，用户只看到一句看不懂的 PG 报错。
+@pytest.mark.parametrize("sql", [
+    "SELECT f.year FROM bi.fact_contract f WHERE f.year = 我们发现2025",
+    "SELECT 产品线同比 FROM bi.fact_contract f GROUP BY 产品线同比",
+])
+def test_reject_non_ascii_column(sql):
+    with pytest.raises(SQLRejectedError):
+        validate(sql, ALLOWED)
+
+
+@pytest.mark.parametrize("sql", [
+    # 中文别名合法
+    "SELECT p.product_line AS 产品线 FROM bi.fact_contract f"
+    " LEFT JOIN bi.dim_product p ON p.product_code = f.product_code",
+    # 中文字符串字面量合法
+    "SELECT p.product_line FROM bi.fact_contract f"
+    " LEFT JOIN bi.dim_product p ON p.product_code = f.product_code"
+    " WHERE p.product_line = '商业解决方案'",
+])
+def test_allow_chinese_alias_and_literal(sql):
+    """中文只允许出现在别名与字符串字面量，不能被误杀。"""
+    out = validate(sql, ALLOWED)
+    assert out  # 未抛异常即通过
 
 
 def test_simple_where():
