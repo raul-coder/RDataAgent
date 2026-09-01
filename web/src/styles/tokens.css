@@ -1,0 +1,35 @@
+/* 设计令牌 —— 沿用 demo.html 已验证的视觉体系 */
+
+:root {
+  --primary: #2f54eb;
+  --primary-dark: #1d3ec7;
+  --primary-light: #e0e7ff;
+  --success: #36cfc9;
+  --warning: #ffb84d;
+  --danger: #e64398;
+
+  --text-primary: #111827;
+  --text-body: #4b5563;
+  --text-hint: #9ca3af;
+
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --bg-muted: #f3f4f6;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  --r-card: 12px;
+  --r-btn: 8px;
+  --r-input: 8px;
+  --r-tag: 6px;
+  --r-dialog: 16px;
+
+  --h-btn: 44px;
+  --h-input: 44px;
+  --h-nav: 48px;
+
+  --sidebar-w: 200px;
+  --sidebar-w-collapsed: 56px;
+}

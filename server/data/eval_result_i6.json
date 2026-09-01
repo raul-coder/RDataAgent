@@ -1,0 +1,314 @@
+{
+  "total": 100,
+  "passed": 72,
+  "by_category": {
+    "ranking": [
+      7,
+      12
+    ],
+    "trend": [
+      7,
+      10
+    ],
+    "proportion": [
+      7,
+      8
+    ],
+    "compare": [
+      7,
+      10
+    ],
+    "warning": [
+      7,
+      8
+    ],
+    "filter": [
+      9,
+      12
+    ],
+    "aggregation": [
+      8,
+      10
+    ],
+    "ppl": [
+      4,
+      8
+    ],
+    "single_entity": [
+      5,
+      8
+    ],
+    "attribution": [
+      1,
+      4
+    ],
+    "edge": [
+      10,
+      10
+    ]
+  },
+  "failures": [
+    {
+      "id": 5,
+      "category": "ranking",
+      "question": "2026年收入最高的5个经营单元",
+      "max_rows": 5,
+      "sql_any": [
+        "year_income"
+      ],
+      "error": "行数 10 > 5",
+      "sql": "SELECT d.unit_name AS 经营单元, SUM(f.year_income) AS 商业收入 FROM bi.fact_contract AS f LEFT JOIN bi.dim_unit AS d ON d.unit_code = f.unit_code WHERE f.year = 2026 GROUP BY d.unit_name ORDER BY 商业收入 DESC LIMIT 10"
+    },
+    {
+      "id": 7,
+      "category": "ranking",
+      "question": "毛利率最高的产品线是哪个",
+      "min_rows": 1,
+      "sql_any": [
+        "gross_profit"
+      ],
+      "error": "SQL 缺少关键字 ['gross_profit']",
+      "sql": "SELECT p.model AS 产品型号, SUM(f.year_income) AS 收入, SUM(f.qty) AS 台套数, ROUND(SUM(f.year_income) / NULLIF(SUM(f.qty), 0), 2) AS 平均单价 FROM bi.fact_contract AS f LEFT JOIN bi.dim_product AS p ON p.product_code = f.product_code WHERE f.year = 2026 GROUP BY p.model ORDER BY 平均单价 DESC LIMIT 10"
+    },
+    {
+      "id": 9,
+      "category": "ranking",
+      "question": "完成率排名前三的经营单元",
+      "max_rows": 3,
+      "sql_any": [
+        "achieve_rate"
+      ],
+      "error": "行数 10 > 3",
+      "sql": "SELECT d.unit_name AS 经营单元, SUM(f.year_income) AS 商业收入 FROM bi.fact_contract AS f LEFT JOIN bi.dim_unit AS d ON d.unit_code = f.unit_code WHERE f.year = 2026 GROUP BY d.unit_name ORDER BY 商业收入 DESC LIMIT 10"
+    },
+    {
+      "id": 10,
+      "category": "ranking",
+      "question": "2025年各经营单元收入排名",
+      "min_rows": 5,
+      "sql_any": [
+        "2025"
+      ],
+      "error": "SQL 缺少关键字 ['2025']",
+      "sql": "SELECT d.unit_name AS 经营单元, SUM(f.year_income) AS 商业收入 FROM bi.fact_contract AS f LEFT JOIN bi.dim_unit AS d ON d.unit_code = f.unit_code WHERE f.year = 2026 GROUP BY d.unit_name ORDER BY 商业收入 DESC LIMIT 10"
+    },
+    {
+      "id": 11,
+      "category": "ranking",
+      "question": "回款金额最多的经营单元",
+      "min_rows": 1,
+      "sql_any": [
+        "year_payment"
+      ],
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 18,
+      "category": "trend",
+      "question": "2026年第四季度的合同金额",
+      "max_rows": 1,
+      "error": "行数 12 > 1",
+      "sql": "SELECT CAST(EXTRACT(MONTH FROM f.land_date) AS INT) AS 月份, SUM(f.amount) AS 合同金额 FROM bi.fact_contract AS f WHERE f.year = 2026 GROUP BY 1 ORDER BY 1 LIMIT 1000"
+    },
+    {
+      "id": 19,
+      "category": "trend",
+      "question": "按月统计2026年的回款情况",
+      "min_rows": 12,
+      "max_rows": 12,
+      "error": "行数 16 > 12",
+      "sql": "SELECT d.unit_name AS 经营单元, SUM(f.year_income) AS 收入, SUM(f.year_payment) AS 回款, ROUND(SUM(f.year_payment) / NULLIF(SUM(f.year_income), 0) * 100, 2) AS 回款率 FROM bi.fact_contract AS f LEFT JOIN bi.dim_unit AS d ON d.unit_code = f.unit_code WHERE f.year = 2026 GROUP BY d.unit_name ORDER BY 回款 DESC LIMIT 1000"
+    },
+    {
+      "id": 22,
+      "category": "trend",
+      "question": "各月新签合同数量",
+      "min_rows": 12,
+      "max_rows": 12,
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 26,
+      "category": "proportion",
+      "question": "各产品类型的销售额份额",
+      "min_rows": 2,
+      "sql_any": [
+        "product_type"
+      ],
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 34,
+      "category": "compare",
+      "question": "2026年目标与实际收入对比",
+      "min_rows": 5,
+      "error": "行数 3 < 5",
+      "sql": "SELECT p.product_line AS 产品线, SUM(CASE WHEN f.year = 2025 THEN f.year_income ELSE 0 END) AS Y2025, SUM(CASE WHEN f.year = 2026 THEN f.year_income ELSE 0 END) AS Y2026 FROM bi.fact_contract AS f LEFT JOIN bi.dim_product AS p ON p.product_code = f.product_code GROUP BY p.product_line ORDER BY Y2026 DESC LIMIT 1000"
+    },
+    {
+      "id": 36,
+      "category": "compare",
+      "question": "2026年商解目标与商解收入的差距",
+      "min_rows": 3,
+      "error": "行数 1 < 3",
+      "sql": "SELECT ROUND(SUM(sa.solution_income) / NULLIF(SUM(sa.solution_goal), 0) * 100, 2) AS 商解整体达成率 FROM bi.v_solution_analysis AS sa WHERE sa.year = 2026 LIMIT 1000"
+    },
+    {
+      "id": 40,
+      "category": "compare",
+      "question": "通用计算和智能计算哪个收入更高",
+      "min_rows": 1,
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 48,
+      "category": "warning",
+      "question": "缺口最大的三个经营单元",
+      "max_rows": 3,
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 55,
+      "category": "filter",
+      "question": "A类客户的合同金额合计",
+      "max_rows": 1,
+      "sql_any": [
+        "customer_level"
+      ],
+      "error": "行数 12 > 1",
+      "sql": "SELECT CAST(EXTRACT(MONTH FROM f.land_date) AS INT) AS 月份, SUM(f.amount) AS 合同金额 FROM bi.fact_contract AS f WHERE f.year = 2026 GROUP BY 1 ORDER BY 1 LIMIT 1000"
+    },
+    {
+      "id": 57,
+      "category": "filter",
+      "question": "服务器产品的销售情况",
+      "min_rows": 1,
+      "sql_any": [
+        "product_type"
+      ],
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 59,
+      "category": "filter",
+      "question": "新产品在2026年的收入",
+      "min_rows": 1,
+      "sql_any": [
+        "is_new_product"
+      ],
+      "error": "SQL 缺少关键字 ['is_new_product']",
+      "sql": "SELECT CAST(EXTRACT(QUARTER FROM f.land_date) AS INT) AS 季度, SUM(f.year_income) AS 商业收入 FROM bi.fact_contract AS f WHERE f.year = 2026 GROUP BY 1 ORDER BY 1 LIMIT 1000"
+    },
+    {
+      "id": 68,
+      "category": "aggregation",
+      "question": "2026年总收入和总回款",
+      "max_rows": 1,
+      "error": "行数 16 > 1",
+      "sql": "SELECT d.unit_name AS 经营单元, SUM(f.year_income) AS 收入, SUM(f.year_payment) AS 回款, ROUND(SUM(f.year_payment) / NULLIF(SUM(f.year_income), 0) * 100, 2) AS 回款率 FROM bi.fact_contract AS f LEFT JOIN bi.dim_unit AS d ON d.unit_code = f.unit_code WHERE f.year = 2026 GROUP BY d.unit_name ORDER BY 回款 DESC LIMIT 1000"
+    },
+    {
+      "id": 69,
+      "category": "aggregation",
+      "question": "平均每个经营单元的收入",
+      "max_rows": 1,
+      "error": "行数 16 > 1",
+      "sql": "SELECT v.unit_name AS 经营单元, v.biz_goal AS 商业目标, v.income AS 收入, v.achieve_rate AS 完成率 FROM bi.v_overall_achieve AS v WHERE v.year = 2026 ORDER BY v.achieve_rate DESC LIMIT 1000"
+    },
+    {
+      "id": 74,
+      "category": "ppl",
+      "question": "各经营单元的机会点数量",
+      "min_rows": 5,
+      "sql_any": [
+        "fact_ppl"
+      ],
+      "error": "SQL 缺少关键字 ['fact_ppl']",
+      "sql": "SELECT v.unit_name AS 经营单元, v.biz_goal AS 目标, v.income AS 收入, v.achieve_rate AS 完成率 FROM bi.v_overall_achieve AS v WHERE v.year = 2026 AND v.region = '华东' ORDER BY v.achieve_rate DESC LIMIT 1000"
+    },
+    {
+      "id": 76,
+      "category": "ppl",
+      "question": "PPL中金额最大的5个机会",
+      "max_rows": 5,
+      "sql_any": [
+        "fact_ppl"
+      ],
+      "error": "行数 6 > 5",
+      "sql": "SELECT ppl.stage AS 阶段, COUNT(*) AS 机会数, SUM(ppl.amount) AS 机会金额 FROM bi.fact_ppl AS ppl WHERE ppl.year = 2026 GROUP BY ppl.stage ORDER BY 机会金额 DESC LIMIT 1000"
+    },
+    {
+      "id": 77,
+      "category": "ppl",
+      "question": "签约阶段的商机有多少个",
+      "max_rows": 1,
+      "error": "返回 0 行",
+      "sql": ""
+    },
+    {
+      "id": 78,
+      "category": "ppl",
+      "question": "2026年PPL总金额",
+      "max_rows": 1,
+      "sql_any": [
+        "fact_ppl"
+      ],
+      "error": "行数 6 > 1",
+      "sql": "SELECT ppl.stage AS 阶段, COUNT(*) AS 机会数, SUM(ppl.amount) AS 机会金额 FROM bi.fact_ppl AS ppl WHERE ppl.year = 2026 GROUP BY ppl.stage ORDER BY 机会金额 DESC LIMIT 1000"
+    },
+    {
+      "id": 83,
+      "category": "single_entity",
+      "question": "山东代表处的合同数",
+      "max_rows": 1,
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 84,
+      "category": "single_entity",
+      "question": "江西办事处为什么完成率低",
+      "min_rows": 1,
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 86,
+      "category": "single_entity",
+      "question": "湖北办事处的客户数量",
+      "max_rows": 1,
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 88,
+      "category": "attribution",
+      "question": "哪些因素导致整体未达成",
+      "min_rows": 1,
+      "error": "返回 0 行",
+      "sql": ""
+    },
+    {
+      "id": 89,
+      "category": "attribution",
+      "question": "收入增长主要来自哪些产品线",
+      "min_rows": 1,
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    },
+    {
+      "id": 90,
+      "category": "attribution",
+      "question": "回款率低的原因",
+      "min_rows": 1,
+      "error": "问数失败：全部模型均调用失败 -> LitellmProvider: 模型 openai/deepseek-v4-flash 调用失败：li",
+      "sql": ""
+    }
+  ]
+}

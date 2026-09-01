@@ -1,0 +1,91 @@
+.page {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  background: var(--surface);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  margin: -20px;
+  border: 1px solid var(--border);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  /* 供「回到底部」按钮绝对定位 */
+  position: relative;
+}
+
+/* 浮在输入框上方：用户往上翻看历史时用它一键回到最新 */
+.backToBottom {
+  position: absolute;
+  right: 24px;
+  bottom: 96px;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.abortRow {
+  text-align: center;
+}
+
+.welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.logo {
+  font-size: 44px;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.quick {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 280px));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.quickItem {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  color: var(--text-body);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.quickItem:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  background: var(--primary-light);
+}

@@ -1,0 +1,92 @@
+version: "3.9"
+
+# 经管之星 · 本地/演示环境
+# 启动：cd deploy && docker compose up -d
+# 初始化：make seed && make db-init
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: jg-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jingguan}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jingguan}
+      POSTGRES_DB: ${POSTGRES_DB:-jingguan}
+      TZ: Asia/Shanghai
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jingguan}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: jg-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    container_name: jg-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123456}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - miniodata:/data
+
+  api:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    container_name: jg-api
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-jingguan}:${POSTGRES_PASSWORD:-jingguan}@postgres:5432/${POSTGRES_DB:-jingguan}
+      BI_READONLY_URL: postgresql+asyncpg://bi_readonly:bi_readonly@postgres:5432/${POSTGRES_DB:-jingguan}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../server:/app
+
+  web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+    container_name: jg-web
+    ports:
+      - "${WEB_PORT:-5173}:80"
+    volumes:
+      # nginx.conf 保留在 deploy/ 下作为单一配置源；
+      # Dockerfile 里 COPY ../deploy/... 会越出构建上下文，因此走挂载
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

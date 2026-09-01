@@ -1,0 +1,30 @@
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-left: 60px;
+}
+
+.bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 12px 12px 4px 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.actions {
+  display: flex;
+  opacity: 0;
+  transition: opacity 0.15s;
+  padding-top: 4px;
+}
+
+.row:hover .actions {
+  opacity: 1;
+}

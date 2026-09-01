@@ -1,0 +1,48 @@
+.card {
+  border: 1px solid #ffd591;
+  background: #fffbe6;
+  border-radius: var(--r-card);
+  padding: 12px 14px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ad6800;
+}
+
+.icon {
+  font-size: 15px;
+}
+
+.reason {
+  display: block;
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option {
+  padding: 5px 12px;
+  border: 1px solid #ffd591;
+  background: #fff;
+  color: #ad6800;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.option:hover {
+  background: #fa8c16;
+  border-color: #fa8c16;
+  color: #fff;
+}

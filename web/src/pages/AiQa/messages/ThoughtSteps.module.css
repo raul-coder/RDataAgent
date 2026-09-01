@@ -1,0 +1,133 @@
+.wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-muted);
+}
+
+.header:hover {
+  background: #eef2ff;
+}
+
+.arrow {
+  color: var(--text-hint);
+  font-size: 12px;
+  width: 12px;
+}
+
+.ok {
+  color: #16a34a;
+}
+.running {
+  color: var(--primary);
+}
+.fail {
+  color: var(--danger);
+}
+
+.summary {
+  font-size: 14px;
+  color: var(--text-body);
+  font-weight: 500;
+}
+
+.toggle {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-hint);
+}
+
+.body {
+  padding: 12px 14px 6px;
+}
+
+.step {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 12px;
+}
+
+.icon {
+  width: 20px;
+  flex-shrink: 0;
+  text-align: center;
+  color: var(--text-hint);
+  padding-top: 2px;
+}
+
+.step.done .icon {
+  color: #16a34a;
+}
+.step.fail .icon {
+  color: var(--danger);
+}
+.step.running .icon {
+  color: var(--primary);
+}
+
+.num {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text-hint);
+  font-size: 12px;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 12px;
+}
+
+.cost {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-hint);
+}
+
+.desc {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  background: var(--bg-muted);
+  border-radius: var(--r-tag);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-body);
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: inherit;
+}

@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+
+# 造数产物（由 make seed 生成，不入库）
+server/data/generated/
+
+# 环境（含 API Key，切勿入库）
+.env
+.env.bak.*
+*.local
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp

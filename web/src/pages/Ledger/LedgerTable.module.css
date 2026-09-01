@@ -1,0 +1,36 @@
+.wrap {
+  padding: 16px;
+}
+
+/* 单个筛选条件：列名选择器 + 值输入 + 删除，整体作为一个视觉单元 */
+.filterRow {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-btn);
+  background: var(--bg-muted);
+}
+
+.sqlBox {
+  font-size: 12px;
+}
+
+.sqlBox summary {
+  cursor: pointer;
+  color: var(--text-hint);
+  padding: 4px 0;
+}
+
+.sqlBox summary:hover {
+  color: var(--primary);
+}
+
+.sql {
+  margin-top: 6px !important;
+  margin-bottom: 0 !important;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 160px;
+  overflow-y: auto;
+}

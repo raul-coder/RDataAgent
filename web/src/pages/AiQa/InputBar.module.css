@@ -1,0 +1,72 @@
+.wrap {
+  padding: 12px 20px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+
+.bar:focus-within {
+  border-color: var(--primary);
+}
+
+.sourceBtn {
+  flex-shrink: 0;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+.input {
+  flex: 1;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 4px 2px;
+  font-size: 15px;
+  resize: none;
+}
+
+.send {
+  flex-shrink: 0;
+  border-radius: 10px;
+  width: 44px;
+}
+
+.hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-hint);
+  text-align: center;
+}
+
+.popover {
+  max-height: 300px;
+  overflow-y: auto;
+  min-width: 220px;
+}
+
+.group {
+  margin-bottom: 10px;
+}
+
+.groupTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-hint);
+  padding: 4px 0 2px;
+}
+
+.popFooter {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
