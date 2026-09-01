@@ -150,7 +150,16 @@ INSERT INTO sem_rule (id, scene, title, content, priority, enabled) VALUES
 (6,  'caliber', '商业收入口径',
      $txt$商业收入 = 不含税签约额，单位万元，取 bi.fact_contract.year_income（等于该合同 12 个月收入之和）。$txt$, 100, TRUE),
 (7,  'caliber', '完成率口径',
-     $txt$完成率 = 收入 / 目标 × 100，保留 2 位小数；除数为 0 时用 NULLIF 返回 NULL，不得报除零错误。$txt$, 98, TRUE),
+     $txt$完成率 = 收入 / 目标 × 100，保留 2 位小数；除数为 0 时用 NULLIF 返回 NULL，不得报除零错误。
+⚠️ 跨多个经营单元的「整体完成率」必须用 SUM(income) / SUM(biz_goal) × 100（以目标额为权重的加权口径）。
+请直接查 bi.v_overall_achieve 视图，它已按经营单元聚合好 income 与 biz_goal：
+  SELECT ROUND(SUM(income) / NULLIF(SUM(biz_goal), 0) * 100, 2) FROM bi.v_overall_achieve WHERE year = YYYY
+
+两个会导致结果完全错误、必须避免的写法：
+1) 不要对视图的 achieve_rate 列直接 AVG —— 那是各单元的简单平均，与单元目标大小无关。2026 年实测：加权 84.82% vs 简单平均 79.83%，相差约 5 个百分点。
+2) 不要把 bi.fact_contract 与 bi.fact_goal 直接 JOIN 后再 SUM —— fact_contract 是「每个合同一行」、fact_goal 是「每单元每月一行」，直接 JOIN 会把 biz_goal 按该单元的合同数重复累加。2026 年实测：目标合计被放大约 585 倍（84,485,632 vs 真实 144,256），完成率算出 0.14% 而非 84.82%。若确需明细级关联，必须先各自按 unit_code 聚合再 JOIN。
+
+按经营单元逐个展示时，可直接取视图的 achieve_rate 列（该列在单元粒度上与上述公式结果一致）。$txt$, 98, TRUE),
 (8,  'caliber', '商解口径',
      $txt$商解 = 商业解决方案产品线。商解收入 = SUM(CASE WHEN p.product_line = '商业解决方案' THEN f.year_income ELSE 0 END)，必须 JOIN bi.dim_product。$txt$, 96, TRUE),
 (9,  'caliber', '毛利口径',

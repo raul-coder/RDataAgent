@@ -151,6 +151,8 @@ async def retrieve_schema(
             "【别名约定】bi.fact_contract→f、bi.fact_ppl→ppl、bi.fact_goal→g、"
             "bi.dim_unit→d、bi.dim_industry→i、bi.dim_product→p、"
             "bi.dim_sales→s、bi.dim_customer→c。JOIN 维表时必须使用这些别名。"
+            "视图（bi.v_*）统一用 v——Few-shot 示例均按此书写，保持一致可避免"
+            "同一视图在不同问法下出现多种别名。"
         ),
     )
     logger.info(
