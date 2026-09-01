@@ -72,7 +72,10 @@ INSERT INTO sem_metric (id, code, name, aliases, expr_sql, source_id, unit, valu
      '缺口 = 目标 - 收入，正值表示未达成', '#,##0.00', TRUE),
 (18, 'income_yoy',        '收入同比',       '["同比","同比增长","yoy","增速","增长率"]'::jsonb,
      $sql$ROUND((SUM(income) - SUM(prev_income)) / NULLIF(SUM(prev_income), 0) * 100, 2)$sql$, 9, '%', 'decimal', 'NONE',
-     '同比 = (本期收入 - 去年同期) / 去年同期 × 100，取自 v_achieve_yoy', '#,##0.00', TRUE)
+     '同比 = (本期收入 - 去年同期) / 去年同期 × 100，取自 v_achieve_yoy', '#,##0.00', TRUE),
+(29, 'cost',              '成本',           '["成本","采购成本"]'::jsonb,
+     $sql$SUM(f.cost)$sql$, 1, '万元', 'decimal', 'SUM',
+     '成本 = 合同采购成本，取 bi.fact_contract.cost，单位万元', '#,##0.00', TRUE)
 ON CONFLICT (id) DO UPDATE SET
     code = EXCLUDED.code, name = EXCLUDED.name, aliases = EXCLUDED.aliases,
     expr_sql = EXCLUDED.expr_sql, source_id = EXCLUDED.source_id, unit = EXCLUDED.unit,
@@ -122,7 +125,15 @@ INSERT INTO sem_dimension (id, code, name, aliases, expr_sql, display_expr, join
 (11, 'land_date',    '落地时间', '["落地时间","时间","日期","月份"]'::jsonb,
      $sql$f.land_date$sql$, $sql$f.land_date$sql$, NULL, 1, 'time', NULL, TRUE),
 (12, 'year',         '年度',     '["年度","年份","年"]'::jsonb,
-     $sql$f.year$sql$, $sql$f.year$sql$, NULL, 1, 'numeric', '[2025,2026]'::jsonb, TRUE)
+     $sql$f.year$sql$, $sql$f.year$sql$, NULL, 1, 'numeric', '[2025,2026]'::jsonb, TRUE),
+-- 以下三项由覆盖度体检补充（原语义层未暴露，模型只能靠猜）。
+-- 别名刻意不含裸词「项目」：避免「高风险项目有哪些」等项目类问法被误判为按项目名分组。
+(14, 'project_name', '项目名称', '["项目名称","项目名"]'::jsonb,
+     $sql$f.project_name$sql$, $sql$f.project_name$sql$, NULL, 1, 'categorical', NULL, TRUE),
+(15, 'contract_no',  '合同编号', '["合同编号","合同号","合同编码"]'::jsonb,
+     $sql$f.contract_no$sql$, $sql$f.contract_no$sql$, NULL, 1, 'categorical', NULL, TRUE),
+(16, 'rebate_flag',  '返利标记', '["返利标记","是否返利"]'::jsonb,
+     $sql$f.rebate_flag$sql$, $sql$f.rebate_flag$sql$, NULL, 1, 'categorical', NULL, TRUE)
 ON CONFLICT (id) DO UPDATE SET
     code = EXCLUDED.code, name = EXCLUDED.name, aliases = EXCLUDED.aliases,
     expr_sql = EXCLUDED.expr_sql, display_expr = EXCLUDED.display_expr, join_sql = EXCLUDED.join_sql,
@@ -178,7 +189,21 @@ INSERT INTO sem_rule (id, scene, title, content, priority, enabled) VALUES
      $txt$结果仅一行一列（单值）时用指标卡展示，不输出图表；结果为空时明确说明「该条件下无数据」并给出放宽建议。$txt$, 90, TRUE),
 (17, 'caliber', '同比口径',
      $txt$同比（yoy）=（本期 − 同期）/ 同期 × 100，ROUND 保留 2 位小数；除数为 0 必须用 NULLIF(...,0) 返回 NULL，不得报除零错误。按年度同比时统一用 SUM(CASE WHEN f.year = 2026 THEN f.year_income ELSE 0 END) 作本期、SUM(CASE WHEN f.year = 2025 THEN f.year_income ELSE 0 END) 作同期。
-重要边界：bi.v_achieve_yoy（同比分析）视图【仅含经营单元维度】（year/unit_code/unit_name/region/income/prev_income/income_yoy），没有 product_line、industry_code、customer_code 列。若问题涉及产品线、行业、客户等其它维度的同比，必须基于 bi.fact_contract 用上面的 CASE WHEN 自行计算，不得假设任何视图存在 income_yoy 列——多数视图并没有该列。$txt$, 97, TRUE)
+重要边界：bi.v_achieve_yoy（同比分析）视图【仅含经营单元维度】（year/unit_code/unit_name/region/income/prev_income/income_yoy），没有 product_line、industry_code、customer_code 列。若问题涉及产品线、行业、客户等其它维度的同比，必须基于 bi.fact_contract 用上面的 CASE WHEN 自行计算，不得假设任何视图存在 income_yoy 列——多数视图并没有该列。$txt$, 97, TRUE),
+(18, 'caliber', '视图现成列优先',
+     $txt$下列视图已按各自粒度聚合好指标，能命中时【优先直接取列】，不要回 bi.fact_contract 或 bi.fact_goal 重新聚合——既慢又容易算错。
+1) bi.v_overall_achieve（整体达成，粒度=年度+经营单元）：year, unit_code, unit_name, region, is_key_unit, biz_goal, solution_goal, income, payment, amount, contract_count, achieve_rate, solution_rate, income_gap, is_warning。
+2) bi.v_product_analysis（产品分析，粒度=年度+产品线/产品类型/型号）：year, product_line, product_type, model, contract_count, qty, income, gross_profit, gross_margin_rate。
+3) bi.v_solution_analysis（商解专项，粒度=年度+经营单元）：year, unit_code, unit_name, solution_goal, biz_goal, solution_income, solution_rate。
+4) bi.v_industry_achieve（行业达成，粒度=年度+行业大类/小类）：year, industry_cat, industry_sub, customer_count, contract_count, qty, income, payment。
+5) bi.v_key_unit（重点单元，粒度=年度+经营单元）：year, unit_code, unit_name, region, is_key_unit, biz_goal, income, achieve_rate, income_gap, is_warning, rate_rank_desc, rate_rank_asc。
+6) bi.v_achieve_yoy（同比分析，粒度=年度+经营单元）：year, unit_code, unit_name, region, income, prev_income, income_delta, income_yoy, biz_goal, prev_biz_goal, achieve_rate, prev_achieve_rate。
+注意这些视图没有日期列，也没有产品线之外的其它明细维度；若问题需要视图不具备的维度（例如「产品线同比」），才回到明细表计算（见「同比口径」规则）。
+⚠️ 视图粒度可能【细于】问题所需，取用时必须按问题要求的维度 GROUP BY 并对指标 SUM，否则同一维度值会重复出现多行。
+例：v_product_analysis 的粒度是「年度 + 产品线 + 产品类型 + 型号」，直接 SELECT product_line, income 会返回 30 行（通用计算重复 16 次）；
+查「各产品线收入」必须写成：
+  SELECT product_line, SUM(income) FROM bi.v_product_analysis WHERE year = 2026 GROUP BY product_line
+（正确结果仅 3 行：通用计算 57605.79 / 智能计算 33905.55 / 商业解决方案 30853.31）。$txt$, 95, TRUE)
 ON CONFLICT (id) DO UPDATE SET
     scene = EXCLUDED.scene, title = EXCLUDED.title, content = EXCLUDED.content,
     priority = EXCLUDED.priority, enabled = EXCLUDED.enabled;
