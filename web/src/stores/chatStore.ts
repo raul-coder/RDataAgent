@@ -34,7 +34,10 @@ export interface ChatMessage {
     tables: TableBlock[];
     charts: ChartBlock[];
     followups: string[];
+    /** 无任何可用远程模型（检索式兜底 / 程序化摘要） */
     degraded?: boolean;
+    /** 首选模型输出未通过校验，实际由备用模型产出 */
+    model_fallback?: boolean;
     /** 多轮：改写后的完整问题 */
     rewritten?: string;
     /** 多轮：本轮生效的槽位 */

@@ -1,7 +1,7 @@
 .PHONY: help env venv deps services-start services-stop \
         seed seed-dev verify db-init db-reset db-grant check-fewshots \
         seed-i4 check-i4 check-uc3 check-uc4 check-security check-pipeline \
-        check-pipeline-user check-multiturn \
+        check-pipeline-user check-multiturn check-slots check-slots-update \
         eval eval-quick probe-models compare-models test \
         setup-local api-dev web-dev status
 
@@ -68,6 +68,12 @@ db-grant: ## 仅重新执行只读账号授权
 
 check-fewshots: ## 校验语义层 Few-shot SQL 全部可执行
 	cd server && $(PYTHON) -m scripts.eval.check_fewshots --verbose
+
+check-slots: ## 槽位抽取回归（黄金快照比对，零 LLM 调用，需数据库）
+	cd server && $(PYTHON) -m scripts.check_slots_golden
+
+check-slots-update: ## 重新生成槽位抽取基线（确认行为变更有意为之后执行）
+	cd server && $(PYTHON) -m scripts.check_slots_golden --update
 
 test: ## 后端全量测试
 	cd server && $(PYTHON) -m pytest tests/ -q

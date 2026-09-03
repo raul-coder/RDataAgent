@@ -78,9 +78,12 @@ def intent_event(intent: str, op: Optional[str] = None) -> SSEEvent:
     return SSEEvent("intent", {"intent": intent, "op": op})
 
 
-def slots_event(text: str, slots: dict) -> SSEEvent:
-    """当前生效的分析条件（多轮对话的上下文，前端可展示）"""
-    return SSEEvent("slots", {"text": text, "slots": slots})
+def slots_event(text: str, slots: dict, used_llm: bool = False) -> SSEEvent:
+    """当前生效的分析条件（多轮对话的上下文，前端可展示）
+
+    used_llm：本轮槽位是否用轻量模型补过（规则层没抽准时的兜底，见 slot_llm.py）。
+    """
+    return SSEEvent("slots", {"text": text, "slots": slots, "used_llm": used_llm})
 
 
 def clarify_event(question: str, options: list[str], reason: str) -> SSEEvent:

@@ -285,6 +285,13 @@ export default function AiQaPage() {
             window.clearTimeout(timer.current);
             flush(sid);
           }
+          // 结论来源如实落地：降级 / 备用模型都在这里才有值，
+          // 不落这两个字段，流式过程中对应的提示条永远不会出现
+          // （只有刷新页面从库里回放 payload 时才可见）。
+          patchPayload(sid, {
+            degraded: !!data.degraded,
+            model_fallback: !!data.model_fallback,
+          });
           updateLastAssistant(sid, { streaming: false });
           setStreaming(false);
           void loadSessions(keyword);

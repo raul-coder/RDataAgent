@@ -2,6 +2,7 @@
 
 策略（规则优先，保证低延迟；规则判不定时交给轻量模型）：
     ① 从当前问题中抽取槽位（指标 / 维度 / 主体 / 时间 / 对比 / 条数 / 筛选）
+       —— 规则字面匹配，规则拿不准时由 slot_llm 用轻量模型补一次
     ② 识别续问信号（那/它/这个/上面/再/还/其它/呢 等指代词）
     ③ 本轮为空的槽位继承上文的 active_slots —— 这就是「指代消解 + 条件叠加」
     ④ 仍无法确定分析对象时，主动澄清反问（给出候选，绝不臆测）
@@ -15,7 +16,17 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from ...core.logging import get_logger, log_kv
-from ..slots import Slots, merge
+from ..slots import (
+    NEGATION_MARKERS,
+    NEGATION_WEAK_RE,
+    OP_LABELS,
+    Slots,
+    filter_value_text,
+    flatten_values,
+    match_hits,
+    merge,
+)
+from . import slot_llm
 from .retrieve import SchemaContext
 
 logger = get_logger(__name__)
@@ -65,48 +76,69 @@ class RewriteResult:
     used_llm: bool = False
 
 
-# 机构后缀：用户常把「北京代表处」说成「北京」
-ORG_SUFFIXES = re.compile(r"(代表处|办事处|系统部|分公司|子公司|有限公司|公司|中心|事业部|部门)$")
+# ── 否定识别 ────────────────────────────────────────────────────────
+# 规则层原本把「不含政企」匹配成 industry_cat = 政企 —— **语义完全相反**。
+# 这是最危险的一类抽取错误：SQL 能正常跑通、返回数据、数字看着也合理，
+# 但统计的是被用户明确排除掉的那一批。
+#
+# 判定采用「否定词紧邻取值」的位置规则：只有否定词出现在取值之前
+# 且间隔不超过 NEGATION_WINDOW 个字符时才算否定。这样「不含政企、只看北京」
+# 里的「北京」不会被误判为排除。
+#: 否定词与取值之间允许的字符间隔（容纳「不含 政企」「不含：政企」这类写法）
+NEGATION_WINDOW = 2
+_MAX_NEGATION_LEN = max(len(m) for m in NEGATION_MARKERS)
 
 
-def _flatten_values(vm) -> list[str]:
-    """维度取值表可能是 dict（按区域分组）或 list，统一摊平成取值列表。"""
-    values: list[str] = []
-    if isinstance(vm, dict):
-        for v in vm.values():
-            if isinstance(v, list):
-                values.extend(str(x) for x in v)
-            else:
-                values.append(str(v))
-    elif isinstance(vm, list):
-        values.extend(str(x) for x in vm)
-    return [v for v in values if v]
+def is_negated(question: str, key: str) -> bool:
+    """该取值在问句中是否被否定词修饰（紧邻其左侧）。"""
+    idx = (question or "").find(key)
+    if idx < 0:
+        return False
+    start = max(0, idx - _MAX_NEGATION_LEN - NEGATION_WINDOW)
+    prefix = question[start:idx]
+
+    for m in NEGATION_MARKERS:
+        p = prefix.rfind(m)
+        # 否定词结尾到取值开头的距离
+        if p >= 0 and 0 <= idx - (start + p + len(m)) <= NEGATION_WINDOW:
+            return True
+    # 单字「非」走正则，避免误伤「非常 / 非凡 / 非法」
+    for m in NEGATION_WEAK_RE.finditer(prefix):
+        if 0 <= idx - (start + m.end()) <= NEGATION_WINDOW:
+            return True
+    return False
 
 
-def _alias_keys(value: str) -> list[str]:
-    """为一个取值生成可用于匹配的别名（含去掉机构后缀的简称）。"""
-    keys = [value]
-    short = ORG_SUFFIXES.sub("", value)
-    if len(short) >= 2 and short != value:
-        keys.append(short)
-    return keys
+def _resolve_ambiguity(
+    candidates: list[tuple[str, str, bool]], schema: SchemaContext
+) -> list[tuple[str, str, bool]]:
+    """收敛取值歧义：同一取值命中多个维度时只保留一个。
 
+    为什么不能都留：「渠道部」既是经营单元也是行业，两个筛选同时加上
+    等于查「既是渠道部行业、又是渠道部单元」的数据——几乎必然是错的，
+    而且错得悄无声息（SQL 能跑通、只是结果为空或偏少）。
 
-def _match_values(question: str, values: list[str]) -> list[str]:
-    """在问题中匹配取值，支持简称；返回完整取值，按匹配长度降序（最长最优先）。"""
-    hits: list[tuple[int, str]] = []
-    for v in values:
-        for key in _alias_keys(v):
-            if key and key in question:
-                hits.append((len(key), v))
-                break
-    # 去重后按「命中的键长度」降序，保证「北京」优先匹配到「北京代表处」而非更短的其它取值
-    seen: set[str] = set()
-    out: list[str] = []
-    for _, v in sorted(hits, key=lambda x: -x[0]):
-        if v not in seen:
-            seen.add(v)
-            out.append(v)
+    这里给出的是**确定性兜底**：主体维度优先，其次按语义层的维度顺序。
+    它不追求猜对——猜对是 LLM 兜底层的职责（assess 会把歧义标记为
+    suspicious，让模型来选）。它的价值在于**没有模型时也不会给出自相矛盾的 SQL**。
+    """
+    by_value: dict[str, list[tuple[str, bool]]] = {}
+    for dim_code, value, negated in candidates:
+        by_value.setdefault(value, []).append((dim_code, negated))
+
+    dim_rank = {str(d["code"]): i for i, d in enumerate(schema.dimensions)}
+    out: list[tuple[str, str, bool]] = []
+    for value, hits in by_value.items():
+        if len(hits) == 1:
+            dim_code, negated = hits[0]
+            out.append((dim_code, value, negated))
+            continue
+        # 主体维度优先（SUBJECT_DIM_CODES），其次按语义层维度顺序
+        chosen = min(
+            hits,
+            key=lambda h: (h[0] not in SUBJECT_DIM_CODES, dim_rank.get(h[0], 999)),
+        )
+        out.append((chosen[0], value, chosen[1]))
     return out
 
 
@@ -131,14 +163,40 @@ def extract_slots(
     # 主体 / 筛选：命中维度取值表
     # 只有「主实体」维度（经营单元、区域、客户、销售）的取值才构成分析主体；
     # 行业、产品线等维度取值一律只作为筛选条件叠加，避免覆盖上文主体。
+    #
+    # 先收集全部候选再统一落槽位：同一个取值可能命中多个维度（取值歧义），
+    # 必须在这里收敛成一个，否则会同时加上两个互相矛盾的筛选条件。
+    candidates: list[tuple[str, str, bool]] = []   # (dim_code, value, negated)
     for d in schema.dimensions:
         # 时间由 time_range 单独建模，再生成 year 筛选会与「2026年」重复
         if d["code"] == "year":
             continue
-        for v in _match_values(q, _flatten_values(d.get("value_map"))):
-            s.filters.append({"dim": d["code"], "op": "=", "value": v})
-            if d["code"] in SUBJECT_DIM_CODES:
-                s.subject = v
+        for key, v in match_hits(q, flatten_values(d.get("value_map"))):
+            candidates.append((d["code"], v, is_negated(q, key)))
+
+    # 同一维度的多个取值合并成 in —— 否则 merge 时会互相覆盖，只剩最后一个。
+    # （merge 侧的 in 并集是给 LLM 兜底输出用的；规则层必须自己产出 in。）
+    grouped: dict[tuple[str, str], list[str]] = {}
+    order: list[tuple[str, str]] = []
+    for dim_code, value, negated in _resolve_ambiguity(candidates, schema):
+        key = (dim_code, "!=" if negated else "=")
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+        grouped[key].append(value)
+
+    for dim_code, op in order:
+        values = grouped[(dim_code, op)]
+        # 多值且非否定 → in；否定多值保持独立（in 无法表达取反，交给 SQL 生成）
+        if len(values) > 1 and op == "=":
+            s.filters.append({"dim": dim_code, "op": "in", "value": values})
+        else:
+            for v in values:
+                s.filters.append({"dim": dim_code, "op": op, "value": v})
+        # 被排除的取值不能当分析主体——「不含北京」问的不是北京。
+        # 取第一个（match_hits 按命中长度降序，即最长匹配），不要用最后一个覆盖。
+        if op == "=" and dim_code in SUBJECT_DIM_CODES and s.subject is None:
+            s.subject = values[0]
 
     # 时间
     for pat, kind in TIME_PATTERNS:
@@ -208,6 +266,23 @@ def is_continuation(question: str) -> bool:
     return len(q.strip()) <= 6
 
 
+def _covers_subject(f: dict, subject: Optional[str]) -> bool:
+    """该筛选条件只是在重复「主体」（已在句中单独输出，不必再说一遍）。"""
+    if not subject:
+        return False
+    value = f.get("value")
+    if isinstance(value, list):
+        return subject in value
+    return value == subject
+
+
+def _filter_text(f: dict, dim_names: dict) -> str:
+    """把一条筛选条件渲染成中文片段（含 != 与多值）。"""
+    dim = dim_names.get(f.get("dim"), f.get("dim"))
+    op = str(f.get("op") or "=")
+    return f"{dim}{OP_LABELS.get(op, op)}{filter_value_text(f.get('value'))}"
+
+
 def build_question(slots: Slots, schema: SchemaContext) -> str:
     """把槽位还原成一句完整的中文问题。"""
     metric_names = {m["code"]: m["name"] for m in schema.metrics}
@@ -225,12 +300,11 @@ def build_question(slots: Slots, schema: SchemaContext) -> str:
     if slots.subject:
         parts.append(slots.subject)
 
-    extra_filters = [
-        f for f in slots.filters
-        if f.get("value") != slots.subject
-    ]
+    # 主体已单独输出，这里只补「非主体」的筛选条件；
+    # 多值（op="in"）条件整体保留，不要只取第一个取值。
+    extra_filters = [f for f in slots.filters if not _covers_subject(f, slots.subject)]
     if extra_filters:
-        parts.append("、".join(f"{dim_names.get(f.get('dim'), f.get('dim'))}为{f.get('value')}" for f in extra_filters))
+        parts.append("、".join(_filter_text(f, dim_names) for f in extra_filters))
 
     if slots.metrics:
         parts.append("、".join(metric_names.get(m, m) for m in slots.metrics))
@@ -260,8 +334,37 @@ async def rewrite(
     providers: Optional[list] = None,
     history: str = "",
 ) -> RewriteResult:
-    """执行改写。"""
+    """执行改写。
+
+    槽位抽取分两步（技术方案 §4.2「规则优先，LLM 兜底」）：
+      1. 规则层字面匹配 —— 同步、零延迟、确定性、可单测；
+      2. 规则层自评拿不准（置信度不足 / 存在否定·歧义·多值·区间信号）时，
+         用轻量模型补一次结构化抽取，输出过语义层白名单后才采纳。
+
+    第 2 步失败一律静默回落第 1 步结果，因此无可用模型时行为与纯规则一致。
+    """
     cur = extract_slots(question, schema, default_year=default_year)
+
+    # ── LLM 兜底：只在规则层拿不准时才发起，绝大多数问法不会走到这里 ──
+    used_llm = False
+    assessment = slot_llm.assess(question, cur, schema)
+    if assessment.needs_llm():
+        llm_slots = await slot_llm.extract_slots_llm(
+            question, schema, providers, default_year
+        )
+        if llm_slots is not None:
+            cur = slot_llm.combine(cur, llm_slots, assessment.suspicious)
+            used_llm = True
+        log_kv(
+            logger, logging.DEBUG, "槽位兜底抽取",
+            question=question,
+            confidence=assessment.confidence,
+            issues=assessment.issues,
+            suspicious=sorted(assessment.suspicious),
+            llm_used=used_llm,
+            final_slots=cur.to_dict(),
+        )
+
     merged = merge(prev_slots, cur)
 
     # 追问为什么「没继承到时间范围」，九成是看这里：merged 是否真的带上了 prev 的槽位
@@ -271,6 +374,7 @@ async def rewrite(
         prev_slots=prev_slots.to_dict(),
         cur_slots=cur.to_dict(),
         merged_slots=merged.to_dict(),
+        used_llm=used_llm,
     )
 
     # 完全没有分析对象，且也没有历史可继承 → 请求澄清（给出指标 + 示例问题）
@@ -286,26 +390,33 @@ async def rewrite(
             need_clarify=True,
             options=list(dict.fromkeys(options))[:8],
             reason="未能识别要分析的指标或对象",
+            used_llm=used_llm,
         )
 
     # ① 续问优先：即便抽取到了主体（如「那北京呢」），也需要补全继承条件后才可执行
     if is_continuation(question):
         expanded = build_question(merged, schema)
         logger.info("指代消解：「%s」→「%s」", question, expanded)
-        return RewriteResult(rewritten=expanded, current=cur, merged=merged)
+        return RewriteResult(
+            rewritten=expanded, current=cur, merged=merged, used_llm=used_llm
+        )
 
     # ② 自足问题（本轮含指标或维度）→ 原样使用，仅把继承条件附在后面作为约束
     if cur.metrics or cur.dimensions:
         hint = _inherited_hint(prev_slots, cur, schema)
         rewritten = f"{question}（继承：{hint}）" if hint else question
         log_kv(logger, logging.DEBUG, "改写分支②自足问题", branch=2, rewritten=rewritten, inherited=hint)
-        return RewriteResult(rewritten=rewritten, current=cur, merged=merged)
+        return RewriteResult(
+            rewritten=rewritten, current=cur, merged=merged, used_llm=used_llm
+        )
 
     # ③ 条件叠加：本轮只有筛选/修饰，把继承条件补全后附加到原问题
     hint = _inherited_hint(prev_slots, cur, schema)
     rewritten = f"{question}（{hint}）" if hint else question
     log_kv(logger, logging.DEBUG, "改写分支③条件叠加", branch=3, rewritten=rewritten, inherited=hint)
-    return RewriteResult(rewritten=rewritten, current=cur, merged=merged)
+    return RewriteResult(
+        rewritten=rewritten, current=cur, merged=merged, used_llm=used_llm
+    )
 
 
 def _inherited_hint(prev: Slots, cur: Slots, schema: SchemaContext) -> str:
@@ -318,9 +429,10 @@ def _inherited_hint(prev: Slots, cur: Slots, schema: SchemaContext) -> str:
         parts.append(f"{t.get('value')}年" if t.get("type") == "year" else str(t.get("value")))
     if prev.subject and not cur.subject:
         parts.append(prev.subject)
+    dim_names = {d["code"]: d["name"] for d in schema.dimensions}
     for f in prev.filters:
         if not any(c.get("dim") == f.get("dim") for c in cur.filters):
-            parts.append(f"{f.get('dim')}为{f.get('value')}")
+            parts.append(_filter_text(f, dim_names))
     if prev.metrics and not cur.metrics:
         parts.append("、".join(metric_names.get(m, m) for m in prev.metrics))
     return "，".join(parts)

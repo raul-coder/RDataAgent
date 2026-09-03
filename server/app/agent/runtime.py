@@ -34,6 +34,7 @@ from .nodes import (
     sql_generate,
     sql_validate,
 )
+from .nodes.intent import IntentResult
 from .nodes.retrieve import SchemaContext, retrieve_schema, source_names
 from .nodes.rewrite import rewrite
 from .slots import Slots, describe, merge, to_prompt_hint
@@ -64,7 +65,11 @@ class RunResult:
     data_sources: list[str] = field(default_factory=list)
     cost_ms: int = 0
     error: str = ""
+    #: 无任何可用远程模型（走检索式兜底 / 程序化摘要）
     degraded: bool = False
+    #: 有可用远程模型，但首选模型的输出未通过结构校验，实际由备用模型产出。
+    #: 与 degraded 区分开——两者对用户意味着不同的可信度。
+    model_fallback: bool = False
     rewritten: str = ""
     slots: dict = field(default_factory=dict)
     clarify: dict = field(default_factory=dict)
@@ -122,7 +127,7 @@ class AgentRuntime:
         ), result
 
         # ── 意图识别 ──────────────────────────────────────────────
-        intent = intent_node.classify(question)
+        intent: IntentResult = intent_node.classify(question)
         result.intent = intent.intent
         yield ev.intent_event(intent.intent, intent.op), result
 
@@ -211,7 +216,11 @@ class AgentRuntime:
             return
 
         if rw.rewritten != question:
-            yield ev.slots_event(describe(rw.merged, metric_names={m["code"]: m["name"] for m in schema.metrics}), rw.merged.to_dict()), result
+            yield ev.slots_event(
+                describe(rw.merged, metric_names={m["code"]: m["name"] for m in schema.metrics}),
+                rw.merged.to_dict(),
+                used_llm=rw.used_llm,
+            ), result
 
         # ── ② 推理逻辑：生成 SQL ──────────────────────────────────
         yield ev.step_event(2, ev.RUNNING), result
@@ -232,6 +241,8 @@ class AgentRuntime:
         result.thought = draft.thought
         result.model = draft.model or result.model
         result.tokens = draft.tokens or {}
+        # 自愈重试会覆盖 draft，因此这里取最后一次（真正生效的）结果
+        result.model_fallback = draft.fallback
         result.steps.append({"index": 2, "status": ev.DONE, "desc": draft.thought, "cost_ms": _ms(t)})
         yield ev.step_event(2, ev.DONE, draft.thought, _ms(t)), result
 
@@ -341,7 +352,13 @@ class AgentRuntime:
                 yield ev.token_event(piece), result
             result.degraded = True
 
-        result.content = "".join(text_parts)
+        # 兜底：没有数据权限限制时，结论里不该出现「已按权限过滤」的提示。
+        # 模型偶发把规则里的示例原样吐出，会让管理员误以为自己看到的是受限数据。
+        content = "".join(text_parts)
+        cleaned = compose.strip_false_permission_note(content, perm_note)
+        if cleaned != content:
+            logger.warning("结论中出现了无依据的数据权限提示，已剔除")
+        result.content = cleaned
         result.followups = compose.suggest_followups(rw.rewritten, exec_result.columns)
         result.cost_ms = int((time.perf_counter() - t_start) * 1000)
 
@@ -379,6 +396,7 @@ class AgentRuntime:
             model=result.model,
             cost_ms=result.cost_ms,
             degraded=result.degraded,
+            model_fallback=result.model_fallback,
             rows=result.total,
             rewritten=result.rewritten,
         ), result

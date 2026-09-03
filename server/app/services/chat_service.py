@@ -242,6 +242,7 @@ async def _replay_cached(
             "tables": tables,
             "charts": hit.get("charts") or [],
             "cached": True,
+            "model_fallback": bool(hit.get("model_fallback")),
         },
         rewritten_query=hit.get("rewritten", ""),
         intent=hit.get("intent", "data_query"),
@@ -266,7 +267,9 @@ async def _replay_cached(
     )
     yield ev.done_event(
         tokens=hit.get("tokens") or {}, model=hit.get("model", ""),
-        cost_ms=0, degraded=False, rows=len(first.get("rows") or []), cached=True,
+        cost_ms=0, degraded=False,
+        model_fallback=bool(hit.get("model_fallback")),
+        rows=len(first.get("rows") or []), cached=True,
     )
 
 
@@ -449,6 +452,7 @@ async def stream_answer(
         "charts": [final.chart] if final.chart else [],
         "followups": final.followups,
         "degraded": final.degraded,
+        "model_fallback": final.model_fallback,
         "rewritten": final.rewritten,
         "slots": final.slots,
         "clarify": final.clarify,
@@ -457,6 +461,9 @@ async def stream_answer(
     model_name = final.model
     if final.degraded:
         model_name = f"{model_name}(降级)"
+    elif final.model_fallback:
+        # 与「降级」区分：降级是压根没有可用模型，备用模型是有模型但首选的输出不合规
+        model_name = f"{model_name}(备用)"
 
     ai_msg = ChatMessage(
         session_id=session.id,
@@ -509,6 +516,7 @@ async def stream_answer(
                 "rewritten": final.rewritten,
                 "intent": final.intent,
                 "model": model_name,
+                "model_fallback": final.model_fallback,
                 "tokens": final.tokens or {},
             },
         )

@@ -1,33 +1,73 @@
-# Python
+# ── Python ──────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.egg-info/
+*.egg
+__pypackages__/
 .venv/
 venv/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
 
-# Node
+# ── Node ────────────────────────────────────────────────
 node_modules/
 dist/
+build/
 .vite/
+.eslintcache
+*.tsbuildinfo
 npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# 造数产物（由 make seed 生成，不入库）
+# ── 造数产物（由 make seed 生成，不入库）────────────────
 server/data/generated/
 
-# 运行期日志（server/logs/app.log*，由 RotatingFileHandler 轮转）
+# ── 运行期日志（server/logs/app.log*，由 RotatingFileHandler 轮转）──
 logs/
 *.log
 
-# 环境（含 API Key，切勿入库）
+# ── 环境（含 API Key，切勿入库）─────────────────────────
+# .env.* 覆盖 .env.local / .env.production / .env.bak.* 等所有变体；
+# .env.example 是模板，必须入库，故反向放行。
 .env
-.env.bak.*
+.env.*
+!.env.example
 *.local
 
-# IDE / OS
+# ── 评测 / 模型对照产物（--output 指定，勿入库）─────────
+# 注意：scripts/eval/slots_golden.json 是回归基线，必须入库，勿加入此规则。
+server/scripts/eval/*_result*.json
+server/scripts/eval/result*.json
+server/scripts/eval/report*.json
+server/scripts/eval/bench_*.json
+server/scripts/eval/*.csv
+
+# ── 本地数据库文件 ──────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── 演示产物（1.5MB 静态演示页，非源码，已从索引移除）──
+docs/demo.html
+
+# ── 一次性提交脚本（含个人身份信息，勿入库）────────────
+commit-to-github.sh
+
+# ── IDE / 编辑器 ────────────────────────────────────────
 .idea/
 .vscode/
-.DS_Store
+.codebuddy/
 *.swp
+*.swo
+*~
+
+# ── OS ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+ehthumbs.db

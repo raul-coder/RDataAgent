@@ -25,6 +25,17 @@
   color: #ad6800;
 }
 
+/* 与 .degraded 区分：降级是「没有可用模型」，备用模型是「有模型但首选不合规」，
+   后者结果通常仍可用，因此用信息色而非警告色。 */
+.modelFallback {
+  padding: 6px 10px;
+  background: #f0f5ff;
+  border: 1px solid #adc6ff;
+  border-radius: var(--r-tag);
+  font-size: 13px;
+  color: #1d39c4;
+}
+
 .sqlBar {
   display: flex;
   align-items: center;

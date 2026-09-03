@@ -86,6 +86,13 @@ export default function AiAnswerCard({
         </div>
       )}
 
+      {!p?.degraded && p?.model_fallback && (
+        <div className={styles.modelFallback}>
+          <WarningOutlined /> 主模型本次输出不符合要求，已自动改用备用模型生成；
+          如结果与预期不符，可点击「重新生成」重试
+        </div>
+      )}
+
       {p?.sql && (
         <div className={styles.sqlBar}>
           <Button

@@ -15,7 +15,7 @@ from ...core.logging import get_logger, log_kv
 from ...llm.provider import LLMMessage, extract_json
 from ...llm.router import complete
 from ...models import SemFewshot
-from .retrieve import SchemaContext, source_names
+from .retrieve import SchemaContext
 
 logger = get_logger(__name__)
 
@@ -29,6 +29,37 @@ class SQLDraft:
     confidence: float = 0.0
     model: str = ""
     tokens: dict = field(default_factory=dict)
+    #: 实际产出该草稿的 Provider 类名
+    provider: str = ""
+    #: 是否由降级链中的「非首选」模型产出（如实告知用户答案来源）
+    fallback: bool = False
+
+
+def validate_sql_output(text: str) -> Optional[str]:
+    """校验模型输出是否构成可用的 SQL 草稿。
+
+    返回 ``None`` 表示通过，返回字符串表示失败原因。
+
+    放在 Provider 层（``router.complete`` 的 validate 参数）而不是调用之后，
+    是为了让「输出不合规」等同于「该模型调用失败」——降级链会继续尝试下一个模型。
+
+    这里**只判断输出是否残缺**，不判断 SQL 对错：
+      · 输出缺 sql 字段 / 不是 SELECT → 换模型（本函数返回原因）
+      · SQL 语法错、越权、引用不存在的列 → 交给 sql_validate 与自愈重试，
+        语义不同（模型理解了意图只是写错了，重试并带上报错更有效）
+    """
+    payload = extract_json(text)
+    # 注意用 `is None` 而非 `not payload`：{} 是合法 JSON，只是内容为空，
+    # 报「无法解析」会误导排障方向，它真正的问题是缺 sql 字段。
+    if payload is None:
+        return "无法解析为 JSON"
+    sql = str(payload.get("sql") or "").strip()
+    if not sql:
+        return "缺少 sql 字段"
+    head = sql.lstrip("(\n \t").upper()
+    if not (head.startswith("SELECT") or head.startswith("WITH")):
+        return f"sql 字段不是查询语句：{sql[:40]}"
+    return None
 
 
 SYSTEM_PROMPT = """你是经管之星平台的经营数据分析引擎，负责把用户的中文问题翻译成 PostgreSQL SQL。
@@ -106,9 +137,12 @@ async def generate_sql(
         temperature=0.0,
         json_mode=True,
         max_tokens=settings.LLM_MAX_TOKENS,
+        validate=validate_sql_output,
     )
     payload = extract_json(resp.content)
     if not payload or not payload.get("sql"):
+        # 正常情况下到不了这里：validate_sql_output 已把不合规输出挡在 Provider 层，
+        # 所有模型都不合规时 complete 会抛 LLMError。这里只作兜底。
         log_kv(logger, logging.WARNING, "模型未返回可解析的 SQL", question=question,
                raw=resp.content[:400], model=resp.model)
         raise AppException("模型未返回可解析的 SQL", ErrorCode.LLM_ERROR)
@@ -137,6 +171,8 @@ async def generate_sql(
             "prompt": resp.prompt_tokens,
             "completion": resp.completion_tokens,
         },
+        provider=resp.provider,
+        fallback=resp.fallback,
     )
 
 

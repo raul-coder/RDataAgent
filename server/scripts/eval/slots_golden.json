@@ -1,0 +1,2113 @@
+{
+ "2026年各经营单元收入排名": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": {
+   "by": "biz_income",
+   "dir": "desc"
+  },
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年销售最多的3个产品型号": {
+  "metrics": [],
+  "dimensions": [
+   "model",
+   "sales",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": {
+   "by": "value",
+   "dir": "desc"
+  },
+  "limit": 3,
+  "subject": null,
+  "chart_hint": null
+ },
+ "哪个客户贡献的收入最高": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "customer"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": {
+   "by": "biz_income",
+   "dir": "desc"
+  },
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "各销售的业绩排名": {
+  "metrics": [],
+  "dimensions": [
+   "sales"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": {
+   "by": "value",
+   "dir": "desc"
+  },
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年收入最高的5个经营单元": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit",
+   "year"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": {
+   "by": "biz_income",
+   "dir": "desc"
+  },
+  "limit": 5,
+  "subject": null,
+  "chart_hint": null
+ },
+ "各行业小类的收入排行": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "industry_cat",
+   "industry_sub"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "毛利率最高的产品线是哪个": {
+  "metrics": [
+   "gross_profit",
+   "gross_margin_rate"
+  ],
+  "dimensions": [
+   "product_line"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": {
+   "by": "gross_profit",
+   "dir": "desc"
+  },
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年台套数最多的产品型号": {
+  "metrics": [
+   "qty"
+  ],
+  "dimensions": [
+   "model",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": {
+   "by": "qty",
+   "dir": "desc"
+  },
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "完成率排名前三的经营单元": {
+  "metrics": [
+   "achieve_rate"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": {
+   "by": "achieve_rate",
+   "dir": "desc"
+  },
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2025年各经营单元收入排名": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2025
+  },
+  "compare": null,
+  "order": {
+   "by": "biz_income",
+   "dir": "desc"
+  },
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "回款金额最多的经营单元": {
+  "metrics": [
+   "biz_payment",
+   "contract_amount"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": {
+   "by": "biz_payment",
+   "dir": "desc"
+  },
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "各区域收入汇总": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "region"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年每月的合同金额趋势": {
+  "metrics": [
+   "contract_amount"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年每个月的收入趋势": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年各季度的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "近12个月的收入走势": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {
+   "type": "last_months",
+   "value": 12
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年6月的收入是多少": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年第四季度的合同金额": {
+  "metrics": [
+   "contract_amount"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "按月统计2026年的回款情况": {
+  "metrics": [
+   "biz_payment"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2025年到2026年的月度收入变化": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2025
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年上半年和下半年的收入对比": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "各月新签合同数量": {
+  "metrics": [
+   "contract_count",
+   "qty"
+  ],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "各产品线收入占比": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "product_line"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "新产品收入占比是多少": {
+  "metrics": [
+   "biz_income",
+   "new_product_income"
+  ],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年各行业的收入构成": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "industry_cat",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "各产品类型的销售额份额": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "product_type",
+   "sales"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "三大产品线各自的收入占比": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "product_line"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "华东区域各单元收入占比": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit",
+   "region"
+  ],
+  "filters": [
+   {
+    "dim": "region",
+    "op": "=",
+    "value": "华东"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "华东",
+  "chart_hint": null
+ },
+ "高风险项目金额占整体收入的比例": {
+  "metrics": [
+   "biz_income",
+   "contract_amount",
+   "high_risk_count",
+   "high_risk_amount"
+  ],
+  "dimensions": [
+   "risk_level"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年商解收入占总收入比重": {
+  "metrics": [
+   "biz_income",
+   "solution_income"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年各经营单元收入同比": {
+  "metrics": [
+   "biz_income",
+   "income_yoy"
+  ],
+  "dimensions": [
+   "unit",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": "yoy",
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "北京代表处2026年与2025年的收入对比": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit",
+   "year"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "北京代表处"
+   }
+  ],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "北京代表处",
+  "chart_hint": null
+ },
+ "各产品线2025与2026年收入对比": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "product_line",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年目标与实际收入对比": {
+  "metrics": [
+   "biz_income",
+   "biz_goal",
+   "achieve_income"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "上海代表处和浙江代表处谁的收入更高": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "in",
+    "value": [
+     "上海代表处",
+     "浙江代表处"
+    ]
+   },
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "上海代表处",
+  "chart_hint": null
+ },
+ "2026年商解目标与商解收入的差距": {
+  "metrics": [
+   "biz_income",
+   "solution_income",
+   "biz_goal",
+   "solution_goal"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "同比增长最快的经营单元": {
+  "metrics": [
+   "income_yoy"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": "yoy",
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "同比下降的经营单元有哪些": {
+  "metrics": [
+   "income_yoy"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": "yoy",
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年各行业同比增速": {
+  "metrics": [
+   "income_yoy"
+  ],
+  "dimensions": [
+   "industry_cat",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": "yoy",
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "通用计算和智能计算哪个收入更高": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "product_line",
+    "op": "in",
+    "value": [
+     "通用计算",
+     "智能计算"
+    ]
+   },
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "通用计算",
+  "chart_hint": null
+ },
+ "高风险项目有哪些": {
+  "metrics": [
+   "high_risk_count"
+  ],
+  "dimensions": [
+   "risk_level"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "完成率低于60%的预警单元": {
+  "metrics": [
+   "achieve_rate"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "低"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年目标缺口有多少": {
+  "metrics": [
+   "income_gap",
+   "biz_goal"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "高风险项目金额统计": {
+  "metrics": [
+   "contract_amount",
+   "high_risk_count",
+   "high_risk_amount"
+  ],
+  "dimensions": [
+   "risk_level"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "各风险等级的项目分布": {
+  "metrics": [],
+  "dimensions": [
+   "risk_level"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "哪些经营单元没有完成目标": {
+  "metrics": [
+   "biz_goal"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "各区域的高风险项目数": {
+  "metrics": [
+   "contract_count",
+   "high_risk_count"
+  ],
+  "dimensions": [
+   "region",
+   "risk_level"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "缺口最大的三个经营单元": {
+  "metrics": [
+   "income_gap"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "金额大于500万的合同有哪些": {
+  "metrics": [
+   "contract_amount"
+  ],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "金额在100万到300万之间的合同": {
+  "metrics": [
+   "contract_amount"
+  ],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "政企行业收入3000万到5000万的经营单元": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit",
+   "industry_cat"
+  ],
+  "filters": [
+   {
+    "dim": "industry_cat",
+    "op": "=",
+    "value": "政企"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年返利合同有多少": {
+  "metrics": [],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "智能计算产品线的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "product_line"
+  ],
+  "filters": [
+   {
+    "dim": "product_line",
+    "op": "=",
+    "value": "智能计算"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "智能计算",
+  "chart_hint": null
+ },
+ "运营商行业2026年的合同数": {
+  "metrics": [
+   "contract_count"
+  ],
+  "dimensions": [
+   "industry_cat",
+   "year"
+  ],
+  "filters": [
+   {
+    "dim": "industry_cat",
+    "op": "=",
+    "value": "运营商"
+   }
+  ],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "A类客户的合同金额合计": {
+  "metrics": [
+   "contract_amount"
+  ],
+  "dimensions": [
+   "customer"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "华东区域各经营单元的达成情况": {
+  "metrics": [],
+  "dimensions": [
+   "unit",
+   "region"
+  ],
+  "filters": [
+   {
+    "dim": "region",
+    "op": "=",
+    "value": "华东"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "华东",
+  "chart_hint": null
+ },
+ "服务器产品的销售情况": {
+  "metrics": [],
+  "dimensions": [
+   "sales"
+  ],
+  "filters": [
+   {
+    "dim": "product_type",
+    "op": "=",
+    "value": "服务器"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "落地时间在2026年12月的合同": {
+  "metrics": [],
+  "dimensions": [
+   "land_date",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "新产品在2026年的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "渠道部2026年的完成情况": {
+  "metrics": [],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "渠道部"
+   },
+   {
+    "dim": "region",
+    "op": "=",
+    "value": "渠道"
+   }
+  ],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "渠道部",
+  "chart_hint": null
+ },
+ "2026年商业目标总额是多少": {
+  "metrics": [
+   "biz_goal"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年整体回款率是多少": {
+  "metrics": [
+   "biz_payment"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年毛利率情况": {
+  "metrics": [
+   "gross_profit",
+   "gross_margin_rate"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "客户数覆盖情况": {
+  "metrics": [
+   "customer_count"
+  ],
+  "dimensions": [
+   "customer"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年最大单笔合同金额": {
+  "metrics": [
+   "contract_amount"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "单价最高的产品型号": {
+  "metrics": [],
+  "dimensions": [
+   "model"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": {
+   "by": "value",
+   "dir": "desc"
+  },
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年合同总数": {
+  "metrics": [],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年总收入和总回款": {
+  "metrics": [
+   "biz_income",
+   "biz_payment"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "平均每个经营单元的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年重点经营单元的达成情况": {
+  "metrics": [],
+  "dimensions": [
+   "unit",
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年PPL中各阶段的机会金额": {
+  "metrics": [
+   "contract_amount",
+   "ppl_amount"
+  ],
+  "dimensions": [
+   "stage",
+   "year"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "中"
+   }
+  ],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "PPL中高风险机会有哪些": {
+  "metrics": [
+   "high_risk_count"
+  ],
+  "dimensions": [
+   "risk_level"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "in",
+    "value": [
+     "中",
+     "高"
+    ]
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "在途商机金额有多少": {
+  "metrics": [
+   "contract_amount",
+   "ppl_amount"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "stage",
+    "op": "=",
+    "value": "商机"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "各经营单元的机会点数量": {
+  "metrics": [
+   "ppl_count",
+   "qty"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "处于投标阶段的商机金额": {
+  "metrics": [
+   "contract_amount",
+   "ppl_amount"
+  ],
+  "dimensions": [
+   "stage"
+  ],
+  "filters": [
+   {
+    "dim": "stage",
+    "op": "in",
+    "value": [
+     "商机",
+     "投标"
+    ]
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "PPL中金额最大的5个机会": {
+  "metrics": [
+   "contract_amount"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "中"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": 5,
+  "subject": null,
+  "chart_hint": null
+ },
+ "签约阶段的商机有多少个": {
+  "metrics": [],
+  "dimensions": [
+   "stage"
+  ],
+  "filters": [
+   {
+    "dim": "stage",
+    "op": "in",
+    "value": [
+     "商机",
+     "签约"
+    ]
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "2026年PPL总金额": {
+  "metrics": [
+   "contract_amount"
+  ],
+  "dimensions": [
+   "year"
+  ],
+  "filters": [],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "北京代表处今年达成情况": {
+  "metrics": [],
+  "dimensions": [
+   "unit",
+   "year"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "北京代表处"
+   }
+  ],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "北京代表处",
+  "chart_hint": null
+ },
+ "浙江代表处2025年的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit",
+   "year"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "浙江代表处"
+   }
+  ],
+  "time_range": {
+   "type": "year",
+   "value": 2025
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "浙江代表处",
+  "chart_hint": null
+ },
+ "上海代表处的回款情况": {
+  "metrics": [
+   "biz_payment"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "上海代表处"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "上海代表处",
+  "chart_hint": null
+ },
+ "泛政府系统部的目标完成情况": {
+  "metrics": [
+   "biz_goal"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "泛政府系统部"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "泛政府系统部",
+  "chart_hint": null
+ },
+ "山东代表处的合同数": {
+  "metrics": [
+   "contract_count"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "山东代表处"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "山东代表处",
+  "chart_hint": null
+ },
+ "江西办事处为什么完成率低": {
+  "metrics": [
+   "achieve_rate"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "江西办事处"
+   },
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "低"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "江西办事处",
+  "chart_hint": null
+ },
+ "新疆代表处2026年的收入和目标": {
+  "metrics": [
+   "biz_income",
+   "biz_goal"
+  ],
+  "dimensions": [
+   "unit",
+   "year"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "新疆代表处"
+   }
+  ],
+  "time_range": {
+   "type": "year",
+   "value": 2026
+  },
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "新疆代表处",
+  "chart_hint": null
+ },
+ "湖北办事处的客户数量": {
+  "metrics": [
+   "qty",
+   "customer_count"
+  ],
+  "dimensions": [
+   "unit",
+   "customer"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "湖北办事处"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "湖北办事处",
+  "chart_hint": null
+ },
+ "为什么北京代表处下降了": {
+  "metrics": [],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "北京代表处"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "北京代表处",
+  "chart_hint": null
+ },
+ "哪些因素导致整体未达成": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "收入增长主要来自哪些产品线": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "product_line"
+  ],
+  "filters": [],
+  "time_range": {},
+  "compare": "yoy",
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "回款率低的原因": {
+  "metrics": [
+   "biz_payment"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "低"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "你好": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "谢谢": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "今天天气怎么样": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "帮我写一首诗": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "帮我写一段Python代码": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "你是谁": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "看看情况": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "分析一下": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "有哪些数据": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "帮我看看": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "不含政企的经营单元收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [
+   {
+    "dim": "industry_cat",
+    "op": "!=",
+    "value": "政企"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "不含 政企 的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "industry_cat",
+    "op": "!=",
+    "value": "政企"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "不含：政企": {
+  "metrics": [],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "industry_cat",
+    "op": "!=",
+    "value": "政企"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "除了政企之外的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "industry_cat",
+    "op": "!=",
+    "value": "政企"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "排除高风险的合同金额": {
+  "metrics": [
+   "contract_amount",
+   "high_risk_count"
+  ],
+  "dimensions": [
+   "risk_level"
+  ],
+  "filters": [
+   {
+    "dim": "risk_level",
+    "op": "!=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "不含政企、只看北京代表处的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "北京代表处"
+   },
+   {
+    "dim": "industry_cat",
+    "op": "!=",
+    "value": "政企"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "北京代表处",
+  "chart_hint": null
+ },
+ "不含政企但包含运营商的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "industry_cat",
+    "op": "=",
+    "value": "运营商"
+   },
+   {
+    "dim": "industry_cat",
+    "op": "!=",
+    "value": "政企"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "非常多的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "非洲市场的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [],
+  "filters": [],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": null,
+  "chart_hint": null
+ },
+ "渠道部的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "=",
+    "value": "渠道部"
+   },
+   {
+    "dim": "region",
+    "op": "=",
+    "value": "渠道"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "渠道部",
+  "chart_hint": null
+ },
+ "渠道部和北京代表处谁的收入更高": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [
+   "unit"
+  ],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "in",
+    "value": [
+     "北京代表处",
+     "渠道部"
+    ]
+   },
+   {
+    "dim": "region",
+    "op": "=",
+    "value": "渠道"
+   },
+   {
+    "dim": "risk_level",
+    "op": "=",
+    "value": "高"
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "北京代表处",
+  "chart_hint": null
+ },
+ "北京和上海的收入": {
+  "metrics": [
+   "biz_income"
+  ],
+  "dimensions": [],
+  "filters": [
+   {
+    "dim": "unit",
+    "op": "in",
+    "value": [
+     "上海代表处",
+     "北京代表处"
+    ]
+   }
+  ],
+  "time_range": {},
+  "compare": null,
+  "order": null,
+  "limit": null,
+  "subject": "上海代表处",
+  "chart_hint": null
+ }
+}

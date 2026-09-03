@@ -6,8 +6,8 @@ import pytest
 
 from app.agent.nodes.intent import classify, needs_full_pipeline
 from app.agent.nodes.result_ops import apply as apply_op
-from app.agent.nodes.rewrite import extract_slots, rewrite
 from app.agent.nodes.retrieve import SchemaContext
+from app.agent.nodes.rewrite import extract_slots, rewrite
 from app.agent.slots import Slots, merge
 
 SCHEMA = SchemaContext(
@@ -23,7 +23,10 @@ SCHEMA = SchemaContext(
         {"code": "unit", "name": "经营单元", "aliases": ["办事处", "代表处", "单元"],
          "expr_sql": "f.unit_code", "display_expr": "d.unit_name",
          "join_sql": "LEFT JOIN bi.dim_unit AS d ON d.unit_code = f.unit_code", "dim_type": "categorical",
-         "value_map": {"华北": ["北京代表处"], "华东": ["上海代表处", "浙江代表处"]}},
+         # 与种子数据一致：「渠道部」既是经营单元，也是行业大类（见 industry_cat），
+         # 这是构造「取值歧义」场景的真实来源
+         "value_map": {"华北": ["北京代表处"], "华东": ["上海代表处", "浙江代表处"],
+                       "渠道": ["渠道部"]}},
         {"code": "industry_cat", "name": "行业大类", "aliases": ["行业"],
          "expr_sql": "i.industry_cat", "display_expr": "i.industry_cat",
          "join_sql": "LEFT JOIN bi.dim_industry AS i ON i.industry_code = f.industry_code", "dim_type": "categorical",
@@ -85,6 +88,138 @@ async def test_clarify_when_nothing_known():
     r = await _rw("看看情况", Slots())
     assert r.need_clarify
     assert len(r.options) >= 3
+
+
+# ── 否定：规则层必须给出 != 而不是 =（无 LLM 时的保底）──────────────
+# 这是最危险的一类抽取错误：SQL 能跑通、返回数据、数字看着也合理，
+# 但统计的是用户明确排除掉的那一批。
+@pytest.mark.parametrize("q", [
+    "不含政企的收入", "不包含政企", "除了政企", "排除政企",
+    "剔除政企", "不算政企", "不要政企", "不是政企", "非政企",
+])
+def test_negation_produces_not_equal(q):
+    s = extract_slots(q, SCHEMA)
+    assert s.filters, f"{q} 未抽出筛选条件"
+    assert s.filters[0]["op"] == "!=", q
+    assert s.filters[0]["value"] == "政企"
+
+
+@pytest.mark.parametrize("q", ["不含 政企 的收入", "不含:政企"])
+def test_negation_allows_small_gap(q):
+    """否定词与取值之间允许少量间隔字符。"""
+    assert extract_slots(q, SCHEMA).filters[0]["op"] == "!=", q
+
+
+def test_negation_does_not_set_subject():
+    """「不含北京」问的不是北京 —— 被排除的取值不能当分析主体。"""
+    s = extract_slots("不含北京代表处的收入", SCHEMA)
+    assert s.subject is None
+    assert s.filters == [{"dim": "unit", "op": "!=", "value": "北京代表处"}]
+
+
+def test_negation_only_applies_to_adjacent_value():
+    """否定只修饰紧邻的取值，不扩散到后面的并列成分。"""
+    s = extract_slots("不含政企、只看北京代表处的收入", SCHEMA)
+    ops = {f["dim"]: f["op"] for f in s.filters}
+    assert ops == {"industry_cat": "!=", "unit": "="}
+    assert s.subject == "北京代表处"
+
+
+@pytest.mark.parametrize("q", ["非常多的收入", "非洲市场的收入", "政企行业的收入"])
+def test_no_false_negation(q):
+    """「非常 / 非洲」不能被误判为否定词。"""
+    s = extract_slots(q, SCHEMA)
+    assert all(f["op"] == "=" for f in s.filters), q
+
+
+# ── 取值歧义：同一取值命中多维度时只保留一个 ────────────────────────
+def test_ambiguous_value_collapses_to_one_dimension():
+    """「渠道部」既是经营单元又是行业 —— 不能同时加两个互相矛盾的筛选。
+
+    两个筛选同时存在 = 查「既是渠道部行业又是渠道部单元」的数据，
+    SQL 能跑通但结果几乎必然为空，属于最难察觉的一类错误。
+    """
+    s = extract_slots("渠道部的收入", SCHEMA)
+    assert len(s.filters) == 1
+    # 主体维度优先（unit 在 SUBJECT_DIM_CODES 里）
+    assert s.filters[0]["dim"] == "unit"
+    assert s.filters[0]["value"] == "渠道部"
+
+
+def test_same_dim_multi_value_collapses_to_in():
+    """同一维度多个取值必须合并为 in —— 否则 merge 时互相覆盖，只剩最后一个。
+
+    注意：merge 侧的 in 并集只是「下游兼容」，规则层不产出 in 的话它就是死代码。
+    """
+    s = extract_slots("上海代表处和浙江代表处谁的收入更高", SCHEMA)
+    dims = [f["dim"] for f in s.filters]
+    assert dims.count("unit") == 1, f"unit 筛选应只有一条，实际 {s.filters}"
+    unit = next(f for f in s.filters if f["dim"] == "unit")
+    assert unit["op"] == "in"
+    assert set(unit["value"]) == {"上海代表处", "浙江代表处"}
+
+
+def test_subject_takes_longest_match():
+    """多值命中时主体取最长匹配（5 字），不要被短的（3 字）覆盖。
+
+    取值顺序按命中长度降序，「北京代表处」先于「渠道部」。
+    """
+    s = extract_slots("渠道部和北京代表处谁的收入更高", SCHEMA)
+    assert s.subject == "北京代表处"
+    unit = next(f for f in s.filters if f["dim"] == "unit")
+    assert unit["op"] == "in"
+    assert set(unit["value"]) == {"渠道部", "北京代表处"}
+
+
+def test_negated_and_positive_values_stay_separate():
+    """否定与肯定的取值不合并 —— op 不同，in 也无法表达取反。"""
+    s = extract_slots("不含政企但包含运营商的收入", SCHEMA)
+    pairs = {(f["dim"], f["op"]) for f in s.filters}
+    assert ("industry_cat", "!=") in pairs, s.filters
+    assert ("industry_cat", "=") in pairs, s.filters
+
+
+@pytest.mark.asyncio
+async def test_negation_survives_merge():
+    """多轮追问下，否定条件要能随其它槽位一起继承。"""
+    prev = Slots(metrics=["biz_income"], dimensions=["unit"])
+    r = await _rw("不含政企", prev)
+    assert {"dim": "industry_cat", "op": "!=", "value": "政企"} in r.merged.filters
+    assert r.merged.metrics == ["biz_income"]      # 继承
+    assert r.merged.dimensions == ["unit"]         # 继承
+
+
+@pytest.mark.asyncio
+async def test_rewrite_without_llm_still_produces_not_equal():
+    """没有可用模型时，规则层也必须给出 != —— 这正是阶段 0 的意义。
+
+    LLM 兜底是「增益」不是「依赖」：降级模式下不能退回反向语义。
+    """
+    r = await rewrite("不含政企的收入", Slots(), SCHEMA, providers=None)
+    assert r.used_llm is False
+    assert r.current.filters == [{"dim": "industry_cat", "op": "!=", "value": "政企"}]
+
+
+@pytest.mark.asyncio
+async def test_rewrite_without_llm_collapses_ambiguity():
+    """降级模式下，歧义取值也不能退化成两个互相矛盾的筛选。"""
+    r = await rewrite("渠道部的收入", Slots(), SCHEMA, providers=None)
+    assert r.used_llm is False
+    assert len(r.current.filters) == 1
+
+
+def test_ambiguous_value_still_detectable_by_assess():
+    """规则层收敛后，兜底层仍要能从问句识别出歧义并交给模型消解。
+
+    这两层的分工：规则层保证「不会自相矛盾」，模型负责「猜对意图」。
+    """
+    from app.agent.nodes.slot_llm import assess
+
+    s = extract_slots("渠道部的收入", SCHEMA)
+    assert len(s.filters) == 1                       # 规则层已收敛
+    a = assess("渠道部的收入", s, SCHEMA)
+    assert any("歧义" in i for i in a.issues)        # 但兜底层知道这里有歧义
+    assert {"filters", "subject"} <= a.suspicious
 
 
 # ── 槽位合并 ────────────────────────────────────────────────────────

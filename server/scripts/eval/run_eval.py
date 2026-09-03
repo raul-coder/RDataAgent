@@ -122,14 +122,24 @@ def main() -> int:
     ap.add_argument("--password", default="123456")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--category", default="")
+    # 按用例 ID 过滤：改了某个环节后只跑受影响的那些，比全量 100 条省得多。
+    # ID 列表可用离线诊断得出（纯规则、零 LLM 调用）。
+    ap.add_argument("--ids", default="", help="只跑指定用例，逗号分隔，如 --ids 35,60,72")
     ap.add_argument("--output", default="", help="结果 JSON 输出路径")
     args = ap.parse_args()
 
     cases = json.load(open(CASES_PATH, encoding="utf-8"))
+    if args.ids:
+        wanted = {s.strip() for s in args.ids.split(",") if s.strip()}
+        cases = [c for c in cases if str(c["id"]) in wanted]
     if args.category:
         cases = [c for c in cases if c.get("category") == args.category]
     if args.limit:
         cases = cases[: args.limit]
+
+    if not cases:
+        print("没有匹配的用例，请检查 --ids / --category / --limit")
+        return 1
 
     creds = (args.username, args.password)
     token = login(*creds)

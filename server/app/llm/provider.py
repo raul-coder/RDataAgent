@@ -27,6 +27,11 @@ class LLMResponse:
     completion_tokens: int = 0
     finish_reason: str = "stop"
     raw: Any = field(default=None, repr=False)
+    #: 实际响应本次调用的 Provider 类名（降级链上可能是第 2、3 个）
+    provider: str = ""
+    #: 是否由降级链中的「非首选」Provider 响应。
+    #: 用于向用户如实说明「这条答案不是主模型给出的」。
+    fallback: bool = False
 
     @property
     def total_tokens(self) -> int:

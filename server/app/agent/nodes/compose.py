@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any, AsyncIterator
 
 from ...core.config import settings
@@ -25,11 +26,38 @@ SYSTEM = """你是经管之星的问数助手，负责把数据查询结果写�
 4. 若结果为空，明确说明「在该条件下无数据」并给出可放宽的建议。
 5. 不要复述 SQL，不要出现"根据查询结果"这类空话。
 6. 金额类指标的**单位是「万元」**（平台统一口径），不要写成"元"。
-7. 若上下文提供了「数据权限说明」，**必须在结论末尾补一句提示**，
-   例如"注：以上结果已按您的数据权限范围过滤（仅含：上海代表处、浙江代表处）。"
+7. 关于数据权限（**极易出错，务必严格遵守**）：
+   · 上下文存在「# 数据权限说明」这一节时，必须在结论末尾补一句提示，
+     单元名称**照抄该节原文**。
+   · 上下文**没有**这一节时，**严禁**提及任何数据权限、可见范围、过滤、
+     经营单元限制等内容——此时结果基于全量数据，声称被过滤会直接误导用户。
+   · 不要凭印象套用任何单元名称。
 8. 结果为空且存在「数据权限说明」时，要说明这是**权限范围所致**，
    不要让用户误以为数据不存在或名称写错（禁止出现"名称是否准确"这类猜测）。
 """
+
+#: 权限提示的固定开头。用于「未提供权限说明却出现该提示」时的兜底清理。
+_PERM_NOTE_PREFIX = "注：以上结果已按您的数据权限范围过滤"
+
+_PERM_LINE_RE = re.compile(
+    r"[^\n。]*" + re.escape(_PERM_NOTE_PREFIX) + r"[^\n。]*。[ \t]*(?:\n|$)"
+)
+
+
+def strip_false_permission_note(text: str, permission_note: str) -> str:
+    """未提供数据权限说明时，剔除结论里凭空出现的权限提示。
+
+    为什么需要兜底：模型偶发把规则里的示例原样吐出来（历史数据 30 条带备注的
+    回答里，6 条 SQL 中根本没有 unit_code 过滤——都是管理员账号）。这属于
+    **数据可信度**问题：声称被过滤、实际是全量，比不说更糟，因此提示词修正
+    之外再加一道程序化清理。
+
+    :param permission_note: 真实提供的权限说明；非空表示提示合法，原样返回
+    """
+    if not text or permission_note:
+        return text
+    cleaned = _PERM_LINE_RE.sub("", text)
+    return re.sub(r"\n{3,}", "\n\n", cleaned).strip()
 
 FALLBACK_TEMPLATE = """查询返回 **{rows} 行**数据{extra}。
 
